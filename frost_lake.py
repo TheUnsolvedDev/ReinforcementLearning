@@ -9,7 +9,7 @@ DOWN = 1
 LEFT = 2
 RIGHT = 3
 
-actions = {LEFT: 'L', RIGHT: 'R', UP: 'U', DOWN: 'D'}
+actions = {LEFT: '<', RIGHT: '>', UP: '^', DOWN: 'V'}
 
 maze = [
     ["S", "F", "F", "F"],  # [0,1,2,3]
@@ -17,6 +17,7 @@ maze = [
     ["F", "F", "F", "H"],  # [8,9,10,11]
     ["H", "F", "F", "G"]  # [12,13,14,15]
 ]
+
 
 
 class Environment:
@@ -33,8 +34,8 @@ class Environment:
         self.nstates = self.nrow * self.ncol
         self.reset(rat=(0, 0))
 
-        num_state = 16
-        num_action = 4
+        num_state = self.nstates
+        num_action = self.nactions
 
         trans_prob = np.zeros((num_state, num_action, num_state))
         reward = np.zeros((num_state, num_action, num_state))
@@ -63,7 +64,7 @@ class Environment:
 
         counter_map[counter_map == 0] = 1  # avoid invalid division
         reward /= counter_map
-        
+
         self.cmap = counter_map
 
         self.P = trans_prob
@@ -200,7 +201,7 @@ class Environment:
             actions.remove(RIGHT)
         return actions
 
-    def step(self, action: int, debug_actions=False,done_debug = False) -> tuple:
+    def step(self, action: int, debug_actions=False, done_debug=False) -> tuple:
         nrow, ncol = self.maze.shape
         rat_row, rat_col = self.rat
 
@@ -270,9 +271,7 @@ def learnModel(env, samples=1e5):
     return trans_prob, reward
 
 
-
-
-def policy_evaluation(env, policy, value, reward, gamma=0.8, iteration=20):
+def policy_evaluation(env, policy, value, reward, gamma=0.8, iteration=5):
     num_state = env.nstates
     for i in range(iteration):
         for state in range(num_state):
@@ -302,9 +301,7 @@ def policy_improve(env, policy, value, gamma=0.8):
                 max_val = val
                 best_action = action
         policy[state] = best_action
-        if policy[state] != old_action:
-            policy_stable = False
-    return policy, policy_stable
+    return policy
 
 
 def policy_iteration(env, gamma=0.8, iteration=50):
@@ -313,8 +310,7 @@ def policy_iteration(env, gamma=0.8, iteration=50):
     value = np.zeros(num_state)
     for i in tqdm(range(iteration)):
         value = policy_evaluation(env, policy, value, gamma)
-        policy, stable = policy_improve(env, policy, value, gamma)
-
+        policy = policy_improve(env, policy, value, gamma)
 
     return policy, value
 
@@ -326,12 +322,9 @@ if __name__ == '__main__':
     # # print(optimal_value_function(env))
     # # print(policy_iteration(env))
 
-    PI_policy, value = policy_iteration(env, iteration=50)
+    PI_policy, value = policy_iteration(env, iteration=100)
     PI_policy = np.array(list(map(lambda x: actions[x], PI_policy)))
-    print(PI_policy.reshape(4, 4))
+    print()
+    print(PI_policy.reshape(env.nrow,env.ncol))
 
-    print(value.reshape(4, 4))
-    
-    f = env.P
-    tf = env.reward
-    c = env.cmap
+    print(value.reshape(env.nrow,env.ncol))
