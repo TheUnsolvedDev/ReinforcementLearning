@@ -1,2 +1,16 @@
-# Reinforcement-Learning-Study
-Repository containing basic algorithm applied in python.
+# Multiarmed bandit
+
+*Bandit Algorithm*
+
+![Algorithm](./images/simple_bandit.png)
+
+# Finite Markov Decision Process
+
+*Policy Evaluation*
+
+![Algorithm](./images/policy_evaluation.png)
+
+*Policy Iteration*
+
+![Algorithm](./images/policy_iteration.png)
+
