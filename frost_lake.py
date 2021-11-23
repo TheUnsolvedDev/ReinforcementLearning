@@ -38,7 +38,6 @@ class Environment:
 
         trans_prob = np.zeros((num_state, num_action, num_state))
         reward = np.zeros((num_state, num_action, num_state))
-        counter_map = np.zeros((num_state, num_action, num_state))
 
         counter = 0
         while counter < 5000:
@@ -58,13 +57,11 @@ class Environment:
         for i in range(trans_prob.shape[0]):
             for j in range(trans_prob.shape[1]):
                 norm_coeff = np.sum(trans_prob[i, j, :])
+                norm_reward = np.sum(reward[i,j,:])
                 if norm_coeff:
                     trans_prob[i, j, :] /= norm_coeff
+                    # reward[i,j, :] /= norm_reward
 
-        counter_map[counter_map == 0] = 1  # avoid invalid division
-        reward /= counter_map
-
-        self.cmap = counter_map
 
         self.P = trans_prob
         self.reward = reward
@@ -188,6 +185,7 @@ def policy_evaluation(env, policy, value, reward, gamma=0.8, iteration=5):
 def policy_improve(env, policy, value, gamma=0.8):
     num_state = env.nstates
     policy_stable = True
+    best_action = np.random.randint(0, 4)
     for state in range(num_state):
         max_val = -1
         old_action = policy[state]
