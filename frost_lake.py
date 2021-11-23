@@ -19,7 +19,6 @@ maze = [
 ]
 
 
-
 class Environment:
     def __init__(self, maze) -> None:
         self._maze = np.array(maze)
@@ -70,67 +69,8 @@ class Environment:
         self.P = trans_prob
         self.reward = reward
 
-    def transition_probability(self, state, action, new_state):
-        state_r, state_c = self.state_to_location(state)
-        new_state_r, new_state_c = self.state_to_location(new_state)
-
-        if state_r - new_state_r == 1 and state_c == new_state_c:
-            count, list = self.get_neighbors(new_state)
-            if action in list:
-                return 1/count
-            else:
-                return 0
-
-        if state_r - new_state_r == -1 and state_c == new_state_c:
-            count, list = self.get_neighbors(new_state)
-            if action in list:
-                return 1/count
-            else:
-                return 0
-        if state_c - new_state_c == 1 and state_r == new_state_r:
-            count, list = self.get_neighbors(new_state)
-            if action in list:
-                return 1/count
-            else:
-                return 0
-        if state_c - new_state_c == -1 and state_r == new_state_r:
-            count, list = self.get_neighbors(new_state)
-            if action in list:
-                return 1/count
-            else:
-                return 0
-        else:
-            return 0
-
     def get_reward(self, state, action, state_prime):
         return self.reward[state][action][state_prime]
-
-    def get_neighbors(self, state: int) -> list:
-        row, col = self.state_to_location(state)
-        count = 0
-        list = []
-        for i in range(self.nactions):
-            if i == UP:
-                new_row = max(row - 1, 0)
-                if new_row != row:
-                    count += 1
-                    list.append(UP)
-            elif i == DOWN:
-                new_row = min(row + 1, self.nrow - 1)
-                if new_row != row:
-                    count += 1
-                    list.append(DOWN)
-            elif i == LEFT:
-                new_col = max(col - 1, 0)
-                if new_col != col:
-                    count += 1
-                    list.append(LEFT)
-            elif i == RIGHT:
-                new_col = min(col + 1, self.ncol - 1)
-                if new_col != col:
-                    count += 1
-                    list.append(RIGHT)
-        return (count, list)
 
     def reset(self, rat=(0, 0)) -> int:
         self.rat = rat
@@ -231,46 +171,6 @@ class Environment:
         return self.state, reward, done
 
 
-def learnModel(env, samples=1e5):
-    """
-    Get the transition probabilities and reward function
-    : param env: object, gym environment
-    : param samples: int, random samples
-    : return:
-        trans_prob: ndarray, transition probabilities p(s'|a, s)
-        reward: ndarray, reward function r(s, a, s')
-    """
-    # get size of state and action space
-    num_state = env.observation_space.n
-    num_action = env.action_space.n
-
-    trans_prob = np.zeros((num_state, num_action, num_state))
-    reward = np.zeros((num_state, num_action, num_state))
-
-    counter = 0
-    while counter < samples:
-        state = env.reset()
-        done = False
-
-        while not done:
-            random_action = env.action_space.sample()
-            new_state, r, done, _ = env.step(random_action)
-            trans_prob[state][random_action][new_state] += 1
-            reward[state][random_action][new_state] += r
-
-            state = new_state
-            counter += 1
-
-    # normalization
-    for i in range(trans_prob.shape[0]):
-        for j in range(trans_prob.shape[1]):
-            norm_coeff = np.sum(trans_prob[i, j, :])
-            if norm_coeff:
-                trans_prob[i, j, :] /= norm_coeff
-
-    return trans_prob, reward
-
-
 def policy_evaluation(env, policy, value, reward, gamma=0.8, iteration=5):
     num_state = env.nstates
     for i in range(iteration):
@@ -325,6 +225,6 @@ if __name__ == '__main__':
     PI_policy, value = policy_iteration(env, iteration=100)
     PI_policy = np.array(list(map(lambda x: actions[x], PI_policy)))
     print()
-    print(PI_policy.reshape(env.nrow,env.ncol))
+    print(PI_policy.reshape(env.nrow, env.ncol))
 
-    print(value.reshape(env.nrow,env.ncol))
+    print(value.reshape(env.nrow, env.ncol))
