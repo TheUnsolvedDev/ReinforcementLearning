@@ -1,5 +1,6 @@
 import numpy as np
-
+import pandas as pd
+import matplotlib.pyplot as plt
 
 class GaussianBandit:
     def __init__(self, mean=0, stdev=1) -> None:
@@ -8,11 +9,12 @@ class GaussianBandit:
 
     def lever(self):
         return np.round(np.random.normal(self.mean, self.stdev))
-    
+
+
 class BernoulliBandit(object):
     def __init__(self, p):
         self.p = p
-        
+
     def display_ad(self):
         reward = np.random.binomial(n=1, p=self.p)
         return reward
@@ -25,7 +27,7 @@ class Game:
         self.reset_game()
 
     def play(self, choice):
-        reward = self.bandits[choice - 1].lever()
+        reward = self.bandits[choice - 1].display_ad()
         self.rewards.append(reward)
         self.total_reward += reward
         self.n_played += 1
@@ -56,10 +58,41 @@ class Game:
         self.rewards = []
         self.total_reward = 0
         self.n_played = 0
-        
+
+
 if __name__ == '__main__':
-    bandits = [GaussianBandit(mean=0, stdev=1),
-               GaussianBandit(mean=1, stdev=1),
-               GaussianBandit(mean=2, stdev=1)]
-    game = Game(bandits)
-    game.match()
+    adA = BernoulliBandit(0.004)
+    adB = BernoulliBandit(0.016)
+    adC = BernoulliBandit(0.02)
+    adD = BernoulliBandit(0.028)
+    adE = BernoulliBandit(0.031)
+    ads = [adA, adB, adC, adD, adE]
+    game = Game(ads)
+    # game.match()
+
+    n_test = 10000
+    n_prod = 90000
+    n_ads = len(ads)
+    Q = np.zeros(n_ads)  # Q, action values
+    N = np.zeros(n_ads)  # N, total impressions
+    total_reward = 0
+    avg_rewards = []  # Save average rewards over time
+
+    for i in range(n_test):
+        ad_chosen = np.random.randint(n_ads)
+        R = ads[ad_chosen].display_ad()  # Observe reward
+        N[ad_chosen] += 1
+        Q[ad_chosen] += (1 / N[ad_chosen]) * (R - Q[ad_chosen])
+        total_reward += R
+        avg_reward_so_far = total_reward / (i + 1)
+        avg_rewards.append(avg_reward_so_far)
+
+    best_ad_index = np.argmax(Q)
+    print("The best performing ad is {}".format(chr(ord('A') + best_ad_index)))
+    
+    plt.plot(avg_rewards)
+    plt.xlabel("Number of rounds")
+    plt.ylabel("Average reward")
+    plt.show()
+
+    
