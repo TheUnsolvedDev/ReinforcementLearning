@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 class GaussianBandit:
     def __init__(self, mean=0, stdev=1) -> None:
         self.mean = mean
@@ -89,12 +90,12 @@ if __name__ == '__main__':
 
     best_ad_index = np.argmax(Q)
     print("The best performing ad is {}".format(chr(ord('A') + best_ad_index)))
-    
+
     plt.plot(avg_rewards)
     plt.xlabel("Number of rounds")
     plt.ylabel("Average reward for testings")
     plt.show()
-    
+
     total_reward = 0
     avg_rewards = []  # Save average rewards over time
 
@@ -107,10 +108,54 @@ if __name__ == '__main__':
         avg_reward_so_far = total_reward / (i + 1)
         avg_rewards.append(avg_reward_so_far)
 
-    
     plt.plot(avg_rewards)
     plt.xlabel("Number of rounds")
     plt.ylabel("Average reward for prods")
     plt.show()
 
-    
+    eps = 0.1
+    n_prod = 100000
+    n_ads = len(ads)
+    Q = np.zeros(n_ads)
+    N = np.zeros(n_ads)
+    total_reward = 0
+    avg_rewards = []
+
+    ad_chosen = np.random.randint(n_ads)
+    for i in range(n_prod):
+        R = ads[ad_chosen].display_ad()
+        N[ad_chosen] += 1
+        Q[ad_chosen] += (1 / N[ad_chosen]) * (R - Q[ad_chosen])
+        total_reward += R
+        avg_reward_so_far = total_reward / (i + 1)
+        avg_rewards.append(avg_reward_so_far)
+        # Select the next ad to display
+        if np.random.uniform() <= eps:
+            ad_chosen = np.random.randint(n_ads)
+        else:
+            ad_chosen = np.argmax(Q)
+
+    best_ad_index = np.argmax(Q)
+    print("The best performing ad is {}".format(chr(ord('A') + best_ad_index)))
+
+    plt.plot(avg_rewards)
+    plt.xlabel("Number of rounds")
+    plt.ylabel("Average reward for testings")
+    plt.show()
+
+    total_reward = 0
+    avg_rewards = []  # Save average rewards over time
+
+    for i in range(n_prod):
+        ad_chosen = best_ad_index
+        R = ads[ad_chosen].display_ad()  # Observe reward
+        N[ad_chosen] += 1
+        Q[ad_chosen] += (1 / N[ad_chosen]) * (R - Q[ad_chosen])
+        total_reward += R
+        avg_reward_so_far = total_reward / (i + 1)
+        avg_rewards.append(avg_reward_so_far)
+
+    plt.plot(avg_rewards)
+    plt.xlabel("Number of rounds")
+    plt.ylabel("Average reward for prods")
+    plt.show()
