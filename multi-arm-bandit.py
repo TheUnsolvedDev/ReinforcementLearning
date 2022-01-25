@@ -64,7 +64,7 @@ class MAB:
                 print('Avg reward on', self.n_games, ':', self.avg_reward)
                 print()
 
-    def game_comp(self):
+    def game_comp_AB_test(self):
         self.reset_game()
         train_size = 10000
         test_size = 1000
