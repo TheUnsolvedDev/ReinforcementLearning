@@ -68,14 +68,11 @@ class MAB:
         self.reset_game()
         train_size = 10000
         test_size = 1000
-        
-        plt.figure(figsize=(14, 4))
-        fig,ax = plt.subplots(1,2)
-        fig.set_size_inches(14, 4)
 
+        plt.figure(figsize=(14, 4))
         Q = np.zeros(self.n_bandits)
         N = np.zeros(self.n_bandits)
-        
+
         total_reward = 0
         avg_reward = []
         for i in range(train_size):
@@ -86,10 +83,11 @@ class MAB:
             total_reward += R
             avg_reward.append(total_reward/(i+1))
 
-        ax[0].plot(avg_reward)
-        ax[0].set_title('Average Reward for training')
-        ax[0].set_xlabel('rounds')
-        ax[0].set_ylabel('avg_rewards')
+        plt.subplot(121)
+        plt.plot(avg_reward)
+        plt.title('Average Reward for training')
+        plt.xlabel('rounds')
+        plt.ylabel('avg_rewards')
 
         best = np.argmax(Q)
         print('Best one is :', best+1)
@@ -104,13 +102,66 @@ class MAB:
             avg_reward.append(total_reward/(i+1))
 
         print('Reward approx test:', avg_reward[-1])
-        
-        ax[1].plot(avg_reward)
-        ax[1].set_title('Average Reward under best bandit')
-        ax[1].set_xlabel('rounds')
-        ax[1].set_ylabel('avg_rewards')
-        
+
+        plt.subplot(122)
+        plt.plot(avg_reward)
+        plt.title('Average Reward under best bandit')
+        plt.xlabel('rounds')
+        plt.ylabel('avg_rewards')
+
         plt.show()
+
+    def game_comp_Epsil_greed(self,eps = 0.1):
+        self.reset_game()
+        train_size = 10000
+        test_size = 1000
+
+        plt.figure(figsize=(14, 4))
+        Q = np.zeros(self.n_bandits)
+        N = np.zeros(self.n_bandits)
+
+        total_reward = 0
+        avg_reward = []
+        for i in range(train_size):
+            if np.random.uniform() <= eps:
+                choice = np.random.randint(self.n_bandits)
+            else:
+                choice = np.argmax(Q)
+            R = self.bandit_l[choice].pull_lever()
+            N[choice] += 1
+            Q[choice] += (1/N[choice])*(R-Q[choice])
+            total_reward += R
+            avg_reward.append(total_reward/(i+1))
+
+        plt.subplot(121)
+        plt.plot(avg_reward)
+        plt.title('Average Reward for training')
+        plt.xlabel('rounds')
+        plt.ylabel('avg_rewards')
+
+        best = np.argmax(Q)
+        print('Best one is :', best+1)
+        print('Reward approx train:', avg_reward[-1])
+
+        total_reward = 0
+        avg_reward = []
+        for i in range(test_size):
+            choice = best
+            R = self.bandit_l[choice].pull_lever()
+            total_reward += R
+            avg_reward.append(total_reward/(i+1))
+
+        print('Reward approx test:', avg_reward[-1])
+
+        plt.subplot(122)
+        plt.plot(avg_reward)
+        plt.title('Average Reward under best bandit')
+        plt.xlabel('rounds')
+        plt.ylabel('avg_rewards')
+
+        plt.show()
+        
+        return avg_reward
 
 
 if __name__ == '__main__':
@@ -123,3 +174,4 @@ if __name__ == '__main__':
     mab = MAB(4, slot_list, False)
     # mab.game_user()
     mab.game_comp_AB_test()
+    mab.game_comp_Epsil_greed()
