@@ -122,4 +122,4 @@ if __name__ == '__main__':
 
     mab = MAB(4, slot_list, False)
     # mab.game_user()
-    mab.game_comp()
+    mab.game_comp_AB_test()
