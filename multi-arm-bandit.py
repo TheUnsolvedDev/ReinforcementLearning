@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 # GaussianBandit
 '''
@@ -24,7 +25,7 @@ class GaussBandit:
         self.std = std
 
     def pull_lever(self):
-        return np.random.normal(loc=self.mean, scale=self.std)
+        return np.random.normal(loc=self.mean, scale=self.std) + np.random.randn()
 
 
 class MAB:
@@ -34,7 +35,8 @@ class MAB:
         # for increasing the randomnes
         if random:
             np.random.shuffle(self.bandit_l)
-
+        self.train_size = 10000
+        self.test_size = 1000
         self.reset_game()
 
     def reset_game(self):
@@ -66,16 +68,13 @@ class MAB:
 
     def game_comp_AB_test(self):
         self.reset_game()
-        train_size = 10000
-        test_size = 1000
-
         plt.figure(figsize=(14, 4))
         Q = np.zeros(self.n_bandits)
         N = np.zeros(self.n_bandits)
 
         total_reward = 0
         avg_reward = []
-        for i in range(train_size):
+        for i in range(self.train_size):
             choice = np.random.randint(self.n_bandits)
             R = self.bandit_l[choice].pull_lever()
             N[choice] += 1
@@ -85,7 +84,7 @@ class MAB:
 
         plt.subplot(121)
         plt.plot(avg_reward)
-        plt.title('Average Reward for training')
+        plt.title('Average Reward for training in AB test')
         plt.xlabel('rounds')
         plt.ylabel('avg_rewards')
 
@@ -95,7 +94,7 @@ class MAB:
 
         total_reward = 0
         avg_reward = []
-        for i in range(test_size):
+        for i in range(self.test_size):
             choice = best
             R = self.bandit_l[choice].pull_lever()
             total_reward += R
@@ -105,16 +104,14 @@ class MAB:
 
         plt.subplot(122)
         plt.plot(avg_reward)
-        plt.title('Average Reward under best bandit')
+        plt.title('Average Reward under best bandit in AB test')
         plt.xlabel('rounds')
         plt.ylabel('avg_rewards')
 
         plt.show()
 
-    def game_comp_Epsil_greed(self,eps = 0.1):
+    def game_comp_Epsil_greed(self, eps=0.1):
         self.reset_game()
-        train_size = 10000
-        test_size = 1000
 
         plt.figure(figsize=(14, 4))
         Q = np.zeros(self.n_bandits)
@@ -122,7 +119,7 @@ class MAB:
 
         total_reward = 0
         avg_reward = []
-        for i in range(train_size):
+        for i in range(self.train_size):
             if np.random.uniform() <= eps:
                 choice = np.random.randint(self.n_bandits)
             else:
@@ -135,7 +132,7 @@ class MAB:
 
         plt.subplot(121)
         plt.plot(avg_reward)
-        plt.title('Average Reward for training')
+        plt.title('Average Reward for training in Epsilon greedy')
         plt.xlabel('rounds')
         plt.ylabel('avg_rewards')
 
@@ -145,7 +142,7 @@ class MAB:
 
         total_reward = 0
         avg_reward = []
-        for i in range(test_size):
+        for i in range(self.test_size):
             choice = best
             R = self.bandit_l[choice].pull_lever()
             total_reward += R
@@ -155,23 +152,65 @@ class MAB:
 
         plt.subplot(122)
         plt.plot(avg_reward)
-        plt.title('Average Reward under best bandit')
+        plt.title('Average Reward under best bandit in Epsilon greedy')
         plt.xlabel('rounds')
         plt.ylabel('avg_rewards')
 
         plt.show()
-        
+
         return avg_reward
+    
+    def simulate_agent(self, simualations = 10):
+        simulation_Q = np.zeros((simualations,self.n_bandits))
+        simulation_avg_rewards = np.zeros((simualations,self.train_size))
+        simulation_N = np.zeros((simualations,self.n_bandits))
+        
+        for sims in tqdm(range(simualations)):
+            # A/B testing.
+            total_reward = 0
+            for i in range(self.train_size):
+                choice = np.random.randint(self.n_bandits)
+                R = self.bandit_l[choice].pull_lever()
+                simulation_N[sims][choice] += 1
+                simulation_Q[sims][choice] += (1/simulation_N[sims][choice])*(R - simulation_Q[sims][choice])
+                total_reward += R
+                simulation_avg_rewards[sims][i] = total_reward/(i+1)
+                
+        # best_choice = self.bandit_l[np.argmax(np.argmax(simulation_Q,axis=1))]
+        list_data = list(np.argmax(simulation_Q,axis=1))
+        return max(list_data,key = list_data.count)
+    
+    def best_actions(self,best_choice):
+        best = best_choice
+        print('Best one is :', best+1)
+
+        total_reward = 0
+        avg_reward = []
+        for i in range(self.test_size):
+            choice = best
+            R = self.bandit_l[choice].pull_lever()
+            total_reward += R
+            avg_reward.append(total_reward/(i+1))
+
+        print('Reward approx test:', avg_reward[-1])
+
+        plt.plot(avg_reward)
+        plt.title('Average Reward under best bandit in AB test')
+        plt.xlabel('rounds')
+        plt.ylabel('avg_rewards')
+
+        plt.show()
+            
 
 
 if __name__ == '__main__':
-    gb1 = GaussBandit(1, 1)
-    gb2 = GaussBandit(2, 3)
-    gb3 = GaussBandit(3, 1)
-    gb4 = GaussBandit(1, 3)
-    slot_list = [gb1, gb2, gb3, gb4]
+    choice_list = [0,1,2]
+    slot_list = [GaussBandit(np.random.choice(choice_list), np.random.choice(choice_list)) for i in range(10)]
 
     mab = MAB(4, slot_list, False)
     # mab.game_user()
-    mab.game_comp_AB_test()
-    mab.game_comp_Epsil_greed()
+    # mab.game_comp_AB_test()
+    # mab.game_comp_Epsil_greed()
+
+    best_one = mab.simulate_agent(1000)
+    mab.best_actions(best_choice=best_one)
