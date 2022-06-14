@@ -14,3 +14,6 @@
 
 ![Algorithm](./images/policy_iteration.png)
 
+*Value Iteration*
+
+![Algorithm](./images/value_iteration.png)
