@@ -7,14 +7,14 @@ import gym
 import time
 import sys
 
-# env = gym.make('FrozenLake-v1')
-env = gym.make('FrozenLake8x8-v1')
+env = gym.make('FrozenLake-v1')
+# env = gym.make('FrozenLake8x8-v1')
 env = env.unwrapped
 
 env.reset()
 n_actions = 4
-# n_states = 16
-n_states = 64
+n_states = 16
+# n_states = 64
 
 
 def random_gameplay(trials=5):
@@ -48,7 +48,7 @@ def value_iteration(env, iterations=50000, threshold=0.00001, gamma=0.95):
             best_action = np.argmax(np.array(action_values))
             new_state_values[state] = action_values[best_action]
             delta = max(delta, np.abs(
-                np.sum(state_values) - np.sum(new_state_values)))
+                state_value - np.sum(new_state_values)))
         if delta < threshold and iter > 1000:
             break
         else:
@@ -77,6 +77,7 @@ def play(env, policy, iterations=10):
     for iter in range(iterations):
         obs = env.reset()
         while True:
+            # env.render()
             action = policy[obs]
             obs, reward, done, _ = env.step(action)
             if done and reward == 1:
@@ -94,19 +95,19 @@ def play(env, policy, iterations=10):
 if __name__ == '__main__':
     # random_gameplay(6)
     state_values = value_iteration(env)
-    print(state_values.reshape((8, 8)))
+    print(state_values.reshape((4, 4)))
     policy = optimal_policy(env, state_values)
-    print(policy.reshape((8, 8)))
+    print(policy.reshape((4, 4)))
     play(env, policy, iterations=10)
 
 """
 4x4 gameplay
 
 State Values
-[[0.0688909  0.06141457 0.07440976 0.05580732]
- [0.09185454 0.         0.11220821 0.        ]
- [0.14543635 0.24749695 0.29961759 0.        ]
- [0.         0.3799359  0.63902015 0.        ]]
+[[0.18047158 0.15475672 0.15347714 0.13254844]
+ [0.20896709 0.         0.17643079 0.        ]
+ [0.27045741 0.37465152 0.40367272 0.        ]
+ [0.         0.50897995 0.72367364 0.        ]]
  
 Action Values
 [[0. 3. 0. 3.]
