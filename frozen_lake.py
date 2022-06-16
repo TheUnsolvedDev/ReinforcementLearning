@@ -57,7 +57,7 @@ def value_iteration(env, iterations=50000, threshold=0.00001, gamma=0.95):
 
 
 def optimal_policy(env, state_values, gamma=0.9):
-    actions = np.zeros(n_states)
+    actions = np.zeros(n_states,dtype = np.int8)
     for state in range(n_states):
         action_values = []
         for action in range(n_actions):
@@ -77,7 +77,7 @@ def play(env, policy, iterations=10):
     for iter in range(iterations):
         obs = env.reset()
         while True:
-            # env.render()
+            env.render()
             action = policy[obs]
             obs, reward, done, _ = env.step(action)
             if done and reward == 1:
