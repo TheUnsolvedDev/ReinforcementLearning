@@ -48,7 +48,7 @@ def value_iteration(env, iterations=50000, threshold=0.00001, gamma=0.95):
             best_action = np.argmax(np.array(action_values))
             new_state_values[state] = action_values[best_action]
             delta = max(delta, np.abs(
-                state_value - np.sum(new_state_values)))
+                state_value - new_state_values[best_action]))
         if delta < threshold and iter > 1000:
             break
         else:
