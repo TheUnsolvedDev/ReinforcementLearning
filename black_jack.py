@@ -99,9 +99,9 @@ def plot_blackjack(V, ax1, ax2):
 
     X, Y = np.meshgrid(player_sum, dealer_show)
 
-    ax2.scatter(X, Y, state_values[:, :, 0],
+    ax1.scatter(X, Y, state_values[:, :, 0],
                      cmap='viridis', edgecolor='none')
-    ax1.scatter(X, Y, state_values[:, :, 1],
+    ax2.scatter(X, Y, state_values[:, :, 1],
                      cmap='viridis', edgecolor='none')
 
     for ax in ax1, ax2:
@@ -193,16 +193,16 @@ def monte_carlo_exploring(env, episodes=1000):
 
 
 if __name__ == '__main__':
-    episodes = 500000
+    episodes = 1000000
 
-    # state_values = first_visit_monte_carlo(env, episodes=episodes)
-    # print(state_values)
+    state_values = first_visit_monte_carlo(env, episodes=episodes)
+    print(state_values)
 
-    # fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
-    #                          subplot_kw={'projection': '3d'})
-    # axes[0].set_title('value function without usable ace')
-    # axes[1].set_title('value function with usable ace')
-    # plot_blackjack(state_values, axes[0], axes[1])
+    fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
+                             subplot_kw={'projection': '3d'})
+    axes[0].set_title('value function without usable ace')
+    axes[1].set_title('value function with usable ace')
+    plot_blackjack(state_values, axes[0], axes[1])
 
     Q, policy = monte_carlo_exploring(env, episodes=episodes)
     print(policy)
