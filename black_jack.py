@@ -62,9 +62,7 @@
     * v0: Initial versions release (1.0.0)
 """
 
-from os import stat
 import gym
-from more_itertools import sample
 import numpy as np
 import time
 import sys
@@ -183,7 +181,7 @@ def monte_carlo_exploring(env, episodes=1000):
             if S not in states[:ind]:
                 state_count[S] += 1
                 Q[S][A] += (total_reward - Q[S][A])/state_count[S]
-                policy[S] = np.argmax(Q[S][a] for a in range(n_actions))
+                policy[S] = np.argmax([Q[S][a] for a in range(n_actions)])
 
     return Q, policy
 
