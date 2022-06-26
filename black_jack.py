@@ -61,9 +61,18 @@
     ### Version History
     * v0: Initial versions release (1.0.0)
 """
+
+from os import stat
 import gym
+from more_itertools import sample
 import numpy as np
 import time
+import sys
+import tqdm
+from collections import defaultdict
+import matplotlib.pyplot as plt
+
+np.set_printoptions(threshold=sys.maxsize)
 
 env = gym.make('Blackjack-v1')
 env = env.unwrapped
@@ -71,21 +80,133 @@ env = env.unwrapped
 n_actions = env.action_space.n
 n_observations = env.observation_space
 
-print(n_actions, n_observations)
-print((env.reset()))
 
-print(env.observation_space.sample())
+def sample_policy(state):
+    score, dealer_card, usable_ace = state
+    return 0 if score >= 20 else 1
+
+
+def plot_blackjack(V, ax1, ax2):
+    player_sum = np.arange(12, 21 + 1)
+    dealer_show = np.arange(1, 10 + 1)
+    usable_ace = np.array([False, True])
+    state_values = np.zeros(
+        (len(player_sum), len(dealer_show), len(usable_ace)))
+
+    for i, player in enumerate(player_sum):
+        for j, dealer in enumerate(dealer_show):
+            for k, ace in enumerate(usable_ace):
+                state_values[i, j, k] = V[player, dealer, ace]
+
+    X, Y = np.meshgrid(player_sum, dealer_show)
+
+    ax2.plot_surface(X, Y, state_values[:, :, 0], rstride=1, cstride=1,
+                     cmap='viridis', edgecolor='none')
+    ax1.plot_surface(X, Y, state_values[:, :, 1], rstride=1, cstride=1,
+                     cmap='viridis', edgecolor='none')
+
+    for ax in ax1, ax2:
+        ax.set_zlim(-1, 1)
+        ax.set_ylabel('player sum')
+        ax.set_xlabel('dealer showing')
+        ax.set_zlabel('state-value')
+    plt.show()
+
+
+def first_visit_monte_carlo(env, episodes=1000):
+    state_values = defaultdict(float)
+    state_count = defaultdict(int)
+
+    for ep in tqdm.tqdm(range(episodes)):
+        states = []
+        actions = []
+        rewards = []
+
+        done = False
+        state = env.reset()
+        while not done:
+            states.append(state)
+            action = sample_policy(state)
+            actions.append(action)
+            state, reward, done, info = env.step(action)
+            rewards.append(reward)
+
+        total_reward = 0
+        for ind in range(len(states)-1, -1, -1):
+            S = states[ind]
+            R = rewards[ind]
+
+            total_reward += R
+            if S not in states[:ind]:
+                state_count[S] += 1
+                state_values[S] += (total_reward -
+                                    state_values[S])/state_count[S]
+    return state_values
+
+
+def nested_dict(n, type):
+    if n == 1:
+        return defaultdict(type)
+    else:
+        return defaultdict(lambda: nested_dict(n-1, type))
+
+
+def monte_carlo_exploring(env, episodes=1000):
+    Q = nested_dict(2, float)
+    policy = nested_dict(1, int)
+    state_count = nested_dict(1, int)
+
+    for ep in tqdm.tqdm(range(episodes)):
+        total_reward = 0
+        done = False
+        state = env.reset()
+
+        states = []
+        actions = []
+        rewards = []
+
+        done = False
+        state = env.reset()
+        while not done:
+            states.append(state)
+            action = sample_policy(state)
+            actions.append(action)
+            state, reward, done, info = env.step(action)
+            rewards.append(reward)
+            
+        for ind in range(len(states)-1, -1, -1):
+            S = states[ind]
+            R = rewards[ind]
+            A = actions[ind]
+
+            total_reward += R
+            if S not in states[:ind]:
+                state_count[S] += 1
+                Q[S][A] += (total_reward - Q[S][A])/state_count[S]
+                policy[S] = np.argmax(Q[S][a] for a in range(n_actions))
+
+    return Q, policy
 
 
 if __name__ == '__main__':
-    for i in range(100):
-        print(env.reset())
-        done = False
-        while not done:
-            # env.render()
-            state,reward,done,info = env.step(env.action_space.sample())
-            # time.sleep(0.1)
-        print(i)
+    episodes = 500000
+    
+    state_values = first_visit_monte_carlo(env, episodes=episodes)
+    print(state_values)
 
+    fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
+                             subplot_kw={'projection': '3d'})
+    axes[0].set_title('value function without usable ace')
+    axes[1].set_title('value function with usable ace')
+    plot_blackjack(state_values, axes[0], axes[1])
+
+    Q, policy = monte_carlo_exploring(env,episodes = episodes)
+    print(policy)
+    
+    fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
+                             subplot_kw={'projection': '3d'})
+    axes[0].set_title('Policy without usable ace')
+    axes[1].set_title('Policy function with usable ace')
+    plot_blackjack(policy, axes[0], axes[1])
 
     env.close()
