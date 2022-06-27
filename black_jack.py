@@ -99,9 +99,9 @@ def plot_blackjack(V, ax1, ax2):
 
     X, Y = np.meshgrid(player_sum, dealer_show)
 
-    ax1.scatter(X, Y, state_values[:, :, 0],
+    ax1.plot_surface(X, Y, state_values[:, :, 0],
                      cmap='viridis', edgecolor='none')
-    ax2.scatter(X, Y, state_values[:, :, 1],
+    ax2.plot_surface(X, Y, state_values[:, :, 1],
                      cmap='viridis', edgecolor='none')
 
     for ax in ax1, ax2:
@@ -193,7 +193,7 @@ def monte_carlo_exploring(env, episodes=1000):
 
 
 if __name__ == '__main__':
-    episodes = 1000000
+    episodes = 1000*1000
 
     state_values = first_visit_monte_carlo(env, episodes=episodes)
     print(state_values)
@@ -207,10 +207,31 @@ if __name__ == '__main__':
     Q, policy = monte_carlo_exploring(env, episodes=episodes)
     print(policy)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
-                             subplot_kw={'projection': '3d'})
+    fig, axes = plt.subplots(nrows=2, figsize=(5, 8))
     axes[0].set_title('Policy without usable ace')
     axes[1].set_title('Policy function with usable ace')
-    plot_blackjack(policy, axes[0], axes[1])
+    
+    player_sum = np.arange(12, 21 + 1)
+    dealer_show = np.arange(1, 10 + 1)
+    usable_ace = np.array([False, True])
+    state_values = np.zeros(
+        (len(player_sum), len(dealer_show), len(usable_ace)))
+
+    for i, player in enumerate(player_sum):
+        for j, dealer in enumerate(dealer_show):
+            for k, ace in enumerate(usable_ace):
+                state_values[i, j, k] = policy[player, dealer, ace]
+
+    X, Y = np.meshgrid(dealer_show, player_sum)
+
+    axes[0].scatter(X, Y, c = state_values[:, :, 0],
+                     cmap='viridis', edgecolor='none')
+    axes[1].scatter(X, Y, c = state_values[:, :, 1],
+                     cmap='viridis', edgecolor='none')
+
+    for ax in [axes[0], axes[1]]:
+        ax.set_ylabel('player sum')
+        ax.set_xlabel('dealer showing')
+    plt.show()
 
     env.close()
