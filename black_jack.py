@@ -218,6 +218,19 @@ def on_policy_first_visit_monte_carlo(env, epsilon=0.001, episodes=1000):
             R = rewards[ind]
 
             total_reward += R
+            
+            if (S,A) not in state_actions[:ind]:
+                state_count[S] += 1
+                Q[S][A] += (total_reward - Q[S][A])/state_count[S]
+                A_star = np.argmax([Q[S][a] for a in range(n_actions)])
+                
+                for a in range(n_actions):
+                    if a == A_star:
+                        policy[S] = (1 - epsilon)+(epsilon/np.abs(np.sum(list(range(n_actions)))))
+                    else:
+                        policy[S] = (epsilon / np.abs(np.sum(list(range(n_actions)))))
+                        
+    return Q, policy
 
 
 if __name__ == '__main__':
@@ -232,7 +245,7 @@ if __name__ == '__main__':
     # axes[1].set_title('value function with usable ace')
     # plot_blackjack(state_values, axes[0], axes[1])
 
-    Q, policy = monte_carlo_exploring(env, episodes=episodes)
+    Q, policy = on_policy_first_visit_monte_carlo(env, epsilon=0.001, episodes=episodes)
     print(policy)
 
     fig, axes = plt.subplots(nrows=2, figsize=(5, 8))
