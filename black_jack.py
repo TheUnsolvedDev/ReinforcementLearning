@@ -180,7 +180,7 @@ def monte_carlo_exploring(env, episodes=1000):
         is_first = False
     return Q, policy
 
-
+# code needs to be fixed and rewritten
 def on_policy_first_visit_monte_carlo(env, epsilon=0.001, episodes=1000):
     Q = defaultdict(lambda: np.zeros(n_actions))
 
