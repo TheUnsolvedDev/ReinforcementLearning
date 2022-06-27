@@ -224,7 +224,12 @@ def on_policy_first_visit_monte_carlo(env, epsilon=0.001, episodes=1000):
                 Q[S][A] += (total_reward - Q[S][A])/state_count[S]
                 A_star = np.argmax([Q[S][a] for a in range(n_actions)])
                 
-                for a in range(n_actions):
+                score, dealer_card, usable_ace = S
+                if score >= 20:
+                    actions = [0]
+                else:
+                    actions = [0,1]
+                for a in actions:
                     if a == A_star:
                         policy[S] = (1 - epsilon)+(epsilon/np.abs(np.sum(list(range(n_actions)))))
                     else:
