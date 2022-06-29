@@ -110,7 +110,7 @@ def plot_blackjack(V, ax1, ax2):
         ax.set_ylabel('player sum')
         ax.set_xlabel('dealer showing')
         ax.set_zlabel('state-value')
-    plt.show()
+    # plt.show()
 
 
 def first_visit_monte_carlo(env, episodes=1000):
@@ -305,7 +305,7 @@ def off_policy_monte_carlo_control(env, episodes=1000):
 
 
 if __name__ == '__main__':
-    episodes = 1000*1000
+    episodes = 1000*1000*50
 
     # Code part 1
     state_values = first_visit_monte_carlo(env, episodes=episodes)
@@ -316,6 +316,7 @@ if __name__ == '__main__':
     axes[0].set_title('value function without usable ace')
     axes[1].set_title('value function with usable ace')
     plot_blackjack(state_values, axes[0], axes[1])
+    plt.savefig("FirstVisitMonteCarlo.jpg")
 
     # Code part 2
     Q, policy = monte_carlo_exploring(env, episodes=episodes)
@@ -346,7 +347,7 @@ if __name__ == '__main__':
     for ax in [axes[0], axes[1]]:
         ax.set_ylabel('player sum')
         ax.set_xlabel('dealer showing')
-    plt.show()
+    plt.savefig("MonteCarloExploring.jpg")
 
     # Code part 3
     Q, policy = on_policy_first_visit_monte_carlo(
@@ -378,7 +379,7 @@ if __name__ == '__main__':
     for ax in [axes[0], axes[1]]:
         ax.set_ylabel('player sum')
         ax.set_xlabel('dealer showing')
-    plt.show()
+    plt.savefig("OnPolicyFirstVisitMonteCarlo.jpg")
 
     # Code part 4
     Q = off_policy_monte_carlo_prediction(env, episodes=episodes)
@@ -393,6 +394,7 @@ if __name__ == '__main__':
     axes[0].set_title('value function without usable ace')
     axes[1].set_title('value function with usable ace')
     plot_blackjack(V, axes[0], axes[1])
+    plt.savefig("OffPolicyMonteCarloPrediction.jpg")
 
     # Code part 5
     Q, policy = off_policy_monte_carlo_control(env, episodes=episodes)
@@ -423,6 +425,6 @@ if __name__ == '__main__':
     for ax in [axes[0], axes[1]]:
         ax.set_ylabel('player sum')
         ax.set_xlabel('dealer showing')
-    plt.show()
+    plt.savefig("OffPolicyMonteCarloControl.jpg")
 
     env.close()
