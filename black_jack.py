@@ -238,7 +238,7 @@ def random_policy(nA):
 
 def off_policy_monte_carlo_prediction(env, episodes=1000): # Q = Q_pi
     Q = defaultdict(lambda: np.zeros(n_actions))
-    count = defaultdict(int)
+    count = defaultdict(lambda: np.zeros(n_actions))
 
     for ep in tqdm.tqdm(range(episodes)):
         total_reward = 0
@@ -263,8 +263,8 @@ def off_policy_monte_carlo_prediction(env, episodes=1000): # Q = Q_pi
             R = rewards[ind]
 
             total_reward += R
-            count[S] += W
-            Q[S][A] += W*(total_reward - Q[S][A])/count[S]
+            count[S][A] += W
+            Q[S][A] += W*(total_reward - Q[S][A])/count[S][A]
             W *= 1/(random_policy(n_actions))(S)[A]
 
     return Q
@@ -272,7 +272,7 @@ def off_policy_monte_carlo_prediction(env, episodes=1000): # Q = Q_pi
 
 def off_policy_monte_carlo_control(env, episodes=1000): # Pi = Pi*
     Q = defaultdict(lambda: np.zeros(n_actions))
-    count = defaultdict(int)
+    count = defaultdict(lambda: np.zeros(n_actions))
     target_policy = defaultdict(int)
 
     for ep in tqdm.tqdm(range(episodes)):
@@ -298,8 +298,8 @@ def off_policy_monte_carlo_control(env, episodes=1000): # Pi = Pi*
             R = rewards[ind]
 
             total_reward += R
-            count[S] += W
-            Q[S][A] += W*(total_reward - Q[S][A])/count[S]
+            count[S][A] += W
+            Q[S][A] += W*(total_reward - Q[S][A])/count[S][A]
             target_policy[S] = np.argmax([Q[S][a] for a in range(n_actions)])
 
             if A != target_policy[S]:
