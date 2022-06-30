@@ -62,7 +62,6 @@
     * v0: Initial versions release (1.0.0)
 """
 
-from functools import total_ordering
 import re
 import gym
 import numpy as np

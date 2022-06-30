@@ -17,3 +17,4 @@
 *Value Iteration*
 
 ![Algorithm](./images/value_iteration.png)
+
