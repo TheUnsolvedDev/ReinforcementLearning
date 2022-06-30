@@ -61,8 +61,7 @@
     ### Version History
     * v0: Initial versions release (1.0.0)
 """
-
-import re
+from random import random
 import gym
 import numpy as np
 import time
@@ -109,10 +108,10 @@ def plot_blackjack(V, ax1, ax2):
         ax.set_ylabel('player sum')
         ax.set_xlabel('dealer showing')
         ax.set_zlabel('state-value')
-    # plt.show()
+    plt.show()
 
 
-def first_visit_monte_carlo(env, episodes=1000):
+def first_visit_monte_carlo(env, episodes=1000): # V = V_pi
     state_values = defaultdict(float)
     state_count = defaultdict(int)
 
@@ -138,12 +137,11 @@ def first_visit_monte_carlo(env, episodes=1000):
             total_reward += R
             if S not in states[:ind]:
                 state_count[S] += 1
-                state_values[S] += (total_reward -
-                                    state_values[S])/state_count[S]
+                state_values[S] += (total_reward)/state_count[S]
     return state_values
 
 
-def monte_carlo_exploring(env, episodes=1000):
+def monte_carlo_exploring(env, episodes=1000): # Pi = Pi*
     Q = defaultdict(lambda: np.zeros(n_actions))
 
     policy = defaultdict(int)
@@ -174,7 +172,7 @@ def monte_carlo_exploring(env, episodes=1000):
             total_reward += R
             if (S, A) not in state_actions[:ind]:
                 state_count[S] += 1
-                Q[S][A] += (total_reward - Q[S][A])/state_count[S]
+                Q[S][A] += (total_reward)/state_count[S]
                 policy[S] = np.argmax([Q[S][a] for a in range(n_actions)])
         is_first = False
     return Q, policy
@@ -212,7 +210,7 @@ def on_policy_first_visit_monte_carlo(env, epsilon=0.001, episodes=1000):
 
             if (S, A) not in state_actions[:ind]:
                 state_count[S] += 1
-                Q[S][A] += (total_reward - Q[S][A])/state_count[S]
+                Q[S][A] += (total_reward)/state_count[S]
                 A_star = np.argmax([Q[S][a] for a in range(n_actions)])
 
                 score, dealer_card, usable_ace = S
@@ -231,7 +229,14 @@ def on_policy_first_visit_monte_carlo(env, epsilon=0.001, episodes=1000):
     return Q, policy
 
 
-def off_policy_monte_carlo_prediction(env, episodes=1000):
+def random_policy(nA):
+    A = np.ones(nA, dtype=float) / nA
+    def policy_fn(observation):
+        return A
+    return policy_fn
+
+
+def off_policy_monte_carlo_prediction(env, episodes=1000): # Q = Q_pi
     Q = defaultdict(lambda: np.zeros(n_actions))
     count = defaultdict(int)
 
@@ -245,29 +250,31 @@ def off_policy_monte_carlo_prediction(env, episodes=1000):
         done = False
         while not done:
             states.append(state)
-            action = sample_policy(state)
+            probs = random_policy(n_actions)(state)
+            action = np.random.choice(np.arange(len(probs)), p=probs)
             actions.append(action)
             state, reward, done, info = env.step(action)
             rewards.append(reward)
 
+        W = 1.0
         for ind in range(len(states)-1, -1, -1):
             S = states[ind]
             A = actions[ind]
             R = rewards[ind]
 
             total_reward += R
-            count[S] += 1
-            Q[S][A] += (total_reward - Q[S][A])/count[S]
+            count[S] += W
+            Q[S][A] += W*(total_reward - Q[S][A])/count[S]
+            W *= 1/(random_policy(n_actions))(S)[A]
 
     return Q
 
 
-def off_policy_monte_carlo_control(env, episodes=1000):
+def off_policy_monte_carlo_control(env, episodes=1000): # Pi = Pi*
     Q = defaultdict(lambda: np.zeros(n_actions))
     count = defaultdict(int)
-    policy = defaultdict(int)
+    target_policy = defaultdict(int)
 
-    is_first = True
     for ep in tqdm.tqdm(range(episodes)):
         total_reward = 0
         states = []
@@ -278,107 +285,119 @@ def off_policy_monte_carlo_control(env, episodes=1000):
         done = False
         while not done:
             states.append(state)
-            if is_first:
-                action = sample_policy(state)
-            else:
-                action = policy[state]
+            probs = random_policy(n_actions)(state)
+            action = np.random.choice(np.arange(len(probs)), p=probs)
             actions.append(action)
             state, reward, done, info = env.step(action)
             rewards.append(reward)
 
+        W = 1.0
         for ind in range(len(states)-1, -1, -1):
             S = states[ind]
             A = actions[ind]
             R = rewards[ind]
 
             total_reward += R
-            count[S] += 1
-            Q[S][A] += (total_reward - Q[S][A])/count[S]
-            policy[S] = np.argmax([Q[S][a] for a in range(n_actions)])
+            count[S] += W
+            Q[S][A] += W*(total_reward - Q[S][A])/count[S]
+            target_policy[S] = np.argmax([Q[S][a] for a in range(n_actions)])
 
-            if A != policy[S]:
+            if A != target_policy[S]:
                 break
-            is_first = False
+            W *= 1/(random_policy(n_actions))(S)[A]
 
-    return Q, policy
+    return Q, target_policy
+
+def games_trial(env,policy,no_of_games = 1000):
+    count = 0
+    for games in tqdm.tqdm(range(no_of_games)):
+        done = False
+        state = env.reset()
+        while not done:
+            action = policy[state]
+            state,reward,done,info = env.step(action)
+            
+            if reward == 1:
+                count += 1
+                
+    print(" No of games won:",count,"out of",no_of_games)
 
 
 if __name__ == '__main__':
-    episodes = 1000*1000*50
+    episodes = 1000000*5
 
     # Code part 1
-    state_values = first_visit_monte_carlo(env, episodes=episodes)
-    # print(state_values)
+    # state_values = first_visit_monte_carlo(env, episodes=episodes)
+    # # print(state_values)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
-                             subplot_kw={'projection': '3d'})
-    axes[0].set_title('value function without usable ace')
-    axes[1].set_title('value function with usable ace')
-    plot_blackjack(state_values, axes[0], axes[1])
-    plt.savefig("FirstVisitMonteCarlo.jpg")
+    # fig, axes = plt.subplots(nrows=2, figsize=(5, 8),
+    #                          subplot_kw={'projection': '3d'})
+    # axes[0].set_title('value function without usable ace')
+    # axes[1].set_title('value function with usable ace')
+    # plot_blackjack(state_values, axes[0], axes[1])
 
     # Code part 2
-    Q, policy = monte_carlo_exploring(env, episodes=episodes)
-    # print(policy)
+    # Q, policy = monte_carlo_exploring(env, episodes=episodes)
+    # # print(policy)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(5, 8))
-    axes[0].set_title('Policy without usable ace')
-    axes[1].set_title('Policy function with usable ace')
+    # fig, axes = plt.subplots(nrows=2, figsize=(5, 8))
+    # axes[0].set_title('Policy without usable ace')
+    # axes[1].set_title('Policy function with usable ace')
 
-    player_sum = np.arange(12, 21 + 1)
-    dealer_show = np.arange(1, 10 + 1)
-    usable_ace = np.array([False, True])
-    state_values = np.zeros(
-        (len(player_sum), len(dealer_show), len(usable_ace)))
+    # player_sum = np.arange(12, 21 + 1)
+    # dealer_show = np.arange(1, 10 + 1)
+    # usable_ace = np.array([False, True])
+    # state_values = np.zeros(
+    #     (len(player_sum), len(dealer_show), len(usable_ace)))
 
-    for i, player in enumerate(player_sum):
-        for j, dealer in enumerate(dealer_show):
-            for k, ace in enumerate(usable_ace):
-                state_values[i, j, k] = policy[player, dealer, ace]
+    # for i, player in enumerate(player_sum):
+    #     for j, dealer in enumerate(dealer_show):
+    #         for k, ace in enumerate(usable_ace):
+    #             state_values[i, j, k] = policy[player, dealer, ace]
 
-    X, Y = np.meshgrid(dealer_show, player_sum)
+    # X, Y = np.meshgrid(dealer_show, player_sum)
 
-    axes[0].scatter(X, Y, c=state_values[:, :, 0],
-                    cmap='viridis', edgecolor='none')
-    axes[1].scatter(X, Y, c=state_values[:, :, 1],
-                    cmap='viridis', edgecolor='none')
+    # axes[0].scatter(X, Y, c=state_values[:, :, 0],
+    #                 cmap='viridis', edgecolor='none')
+    # axes[1].scatter(X, Y, c=state_values[:, :, 1],
+    #                 cmap='viridis', edgecolor='none')
 
-    for ax in [axes[0], axes[1]]:
-        ax.set_ylabel('player sum')
-        ax.set_xlabel('dealer showing')
-    plt.savefig("MonteCarloExploring.jpg")
+    # for ax in [axes[0], axes[1]]:
+    #     ax.set_ylabel('player sum')
+    #     ax.set_xlabel('dealer showing')
+    # plt.show()
 
-    # Code part 3
-    Q, policy = on_policy_first_visit_monte_carlo(
-        env, epsilon=0.001, episodes=episodes)
-    # print(policy)
+    # # Code part 3
+    # Q, policy = on_policy_first_visit_monte_carlo(
+    #     env, epsilon=0.001, episodes=episodes)
+    # # print(policy)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(5, 8))
-    axes[0].set_title('Policy without usable ace')
-    axes[1].set_title('Policy function with usable ace')
+    # fig, axes = plt.subplots(nrows=2, figsize=(5, 8))
+    # axes[0].set_title('Policy without usable ace')
+    # axes[1].set_title('Policy function with usable ace')
 
-    player_sum = np.arange(12, 21 + 1)
-    dealer_show = np.arange(1, 10 + 1)
-    usable_ace = np.array([False, True])
-    state_values = np.zeros(
-        (len(player_sum), len(dealer_show), len(usable_ace)))
+    # player_sum = np.arange(12, 21 + 1)
+    # dealer_show = np.arange(1, 10 + 1)
+    # usable_ace = np.array([False, True])
+    # state_values = np.zeros(
+    #     (len(player_sum), len(dealer_show), len(usable_ace)))
 
-    for i, player in enumerate(player_sum):
-        for j, dealer in enumerate(dealer_show):
-            for k, ace in enumerate(usable_ace):
-                state_values[i, j, k] = policy[player, dealer, ace]
+    # for i, player in enumerate(player_sum):
+    #     for j, dealer in enumerate(dealer_show):
+    #         for k, ace in enumerate(usable_ace):
+    #             state_values[i, j, k] = policy[player, dealer, ace]
 
-    X, Y = np.meshgrid(dealer_show, player_sum)
+    # X, Y = np.meshgrid(dealer_show, player_sum)
 
-    axes[0].scatter(X, Y, c=state_values[:, :, 0],
-                    cmap='viridis', edgecolor='none')
-    axes[1].scatter(X, Y, c=state_values[:, :, 1],
-                    cmap='viridis', edgecolor='none')
+    # axes[0].scatter(X, Y, c=state_values[:, :, 0],
+    #                 cmap='viridis', edgecolor='none')
+    # axes[1].scatter(X, Y, c=state_values[:, :, 1],
+    #                 cmap='viridis', edgecolor='none')
 
-    for ax in [axes[0], axes[1]]:
-        ax.set_ylabel('player sum')
-        ax.set_xlabel('dealer showing')
-    plt.savefig("OnPolicyFirstVisitMonteCarlo.jpg")
+    # for ax in [axes[0], axes[1]]:
+    #     ax.set_ylabel('player sum')
+    #     ax.set_xlabel('dealer showing')
+    # plt.show()
 
     # Code part 4
     Q = off_policy_monte_carlo_prediction(env, episodes=episodes)
@@ -393,7 +412,6 @@ if __name__ == '__main__':
     axes[0].set_title('value function without usable ace')
     axes[1].set_title('value function with usable ace')
     plot_blackjack(V, axes[0], axes[1])
-    plt.savefig("OffPolicyMonteCarloPrediction.jpg")
 
     # Code part 5
     Q, policy = off_policy_monte_carlo_control(env, episodes=episodes)
@@ -424,6 +442,8 @@ if __name__ == '__main__':
     for ax in [axes[0], axes[1]]:
         ax.set_ylabel('player sum')
         ax.set_xlabel('dealer showing')
-    plt.savefig("OffPolicyMonteCarloControl.jpg")
+    plt.show()
+    
+    games_trial(env,policy,no_of_games = 10000)
 
     env.close()
