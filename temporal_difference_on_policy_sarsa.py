@@ -18,7 +18,7 @@ semi_states = int(n_states ** 0.5)
 def sarsa(env, iterations=10000):
     Q = defaultdict(lambda :np.zeros(n_actions, dtype=np.float32))
     policy = defaultdict(int)
-    alpha = 0.1
+    alpha = 0.01
     gamma = 0.95
     epsilon = 1
     decay = 1/iterations
