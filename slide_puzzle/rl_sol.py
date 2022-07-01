@@ -94,7 +94,7 @@ if __name__ == '__main__':
     done = False
     count = 0
     
-    # state_values,policy = policy_iteration(env)
+    state_values,policy = policy_iteration(env)
     with open('state_values.pkl','rb') as state_values:
         state_values = pickle.load(state_values)
             
