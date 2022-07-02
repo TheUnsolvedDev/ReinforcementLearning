@@ -7,7 +7,7 @@ import gym
 import sys
 import tqdm
 
-env = gym.make('FrozenLake-v1')
+env = gym.make('FrozenLake8x8-v1')
 env = env.unwrapped
 
 n_actions = env.action_space.n
