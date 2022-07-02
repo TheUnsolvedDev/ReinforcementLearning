@@ -7,7 +7,7 @@ import gym
 import sys
 import tqdm
 
-env = gym.make('FrozenLake8x8-v1')
+env = gym.make('FrozenLake-v1')
 env = env.unwrapped
 
 n_actions = env.action_space.n
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     Q,policy = sarsa(env, iterations=100000)
     print(policy)
     
-    V = np.array([np.max([Q[state][action] for action in range(n_actions)]) for state in range(n_states)])
-    print(V.reshape(semi_states,semi_states))
+    # V = np.array([np.max([Q[state][action] for action in range(n_actions)]) for state in range(n_states)])
+    # print(V.reshape(semi_states,semi_states))
     games_trial(env, policy, no_of_games=100)
     env.close()
