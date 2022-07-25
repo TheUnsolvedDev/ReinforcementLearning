@@ -24,7 +24,7 @@ def agent_by_mark(agents, mark):
             return agent
 
 
-def next_state(state, action):
+def next_state_show(state, action):
     board, mark = state
     nboard = list(board[:])
     nboard[action] = mark_to_code(mark)

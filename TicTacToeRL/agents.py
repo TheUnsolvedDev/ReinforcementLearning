@@ -1,3 +1,4 @@
+
 from operator import ne
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +10,7 @@ import pandas as pd
 
 from params import *
 from env import TicTacToe, agent_by_mark, check_game_status, \
-    next_state, code_to_mark, next_mark
+    next_state_show, code_to_mark, next_mark
 
 plt.ion()
 
@@ -20,7 +21,7 @@ class BaseAgent:
 
     def act(self, state, actions):
         for action in actions:
-            n_state = next_state(state, action)
+            n_state = next_state_show(state, action)
             stats = check_game_status(n_state[0])
             if stats > 0:
                 if code_to_mark(stats) == self.mark:
@@ -62,21 +63,37 @@ def plot(scores1, scores2):
     plt.pause(0.001)
 
 
+V = {}
+visit = defaultdict(int)
+
+
+def set_state_value(state, value):
+    visit[state] += 1
+    V[state] = value
+
+
 class TDAgent:
-    def __init__(self, mark, epsilon, alpha, train=True):
+    def __init__(self, mark, epsilon, alpha, train=True, V=None):
         self.mark = mark
         self.epsilon = epsilon
         self.alpha = alpha
         self.n_actions = NUM_LOC
-        self.Q = defaultdict(lambda: np.zeros(NUM_LOC, dtype=np.float16))
-        if not train:
-            self.Q = load_model(mark+MODEL_FILE)
-        if mark == 'O':
-            self.factor = 1
-        elif mark == 'X':
-            self.factor = -1
+        self.V = V
 
     def act(self, state, ava_actions, full_greedy=False):
+        if self.V:
+            if self.mark == 'O':
+                ava_values = [self.V[next_state_show(
+                    state, action)] for action in ava_actions]
+                best = np.max(ava_values)
+            else:
+                ava_values = [self.V[next_state_show(
+                    state, action)] for action in ava_actions]
+                best = np.min(ava_values)
+            indices = [i for i, v in enumerate(ava_values) if v == best]
+            aidx = np.random.choice(indices)
+            action = ava_actions[aidx]
+            return action
         return self.greedy(state, ava_actions, full_greedy)
 
     def greedy(self, state, ava_actions, full_greedy=False):
@@ -97,46 +114,54 @@ class TDAgent:
         return np.random.choice(ava_actions)
 
     def greedy_action(self, state, ava_actions):
-        state, mark = state
         assert len(ava_actions) > 0
         ava_values = []
         for action in ava_actions:
-            ava_values.append(self.Q[state][action])
-        best = np.max(ava_values)
-        indices = [i for i, v in enumerate(self.Q[state]) if v == best]
-        aidx = np.random.choice(indices)
-        action = aidx
+            next_state = next_state_show(state, action)
+            next_val = self.retake_val(next_state)
+            ava_values.append(next_val)
 
+        if self.mark == 'O':
+            best = np.max(ava_values)
+        if self.mark == 'X':
+            best = np.min(ava_values)
+        indices = [i for i, v in enumerate(ava_values) if v == best]
+        aidx = np.random.choice(indices)
+        action = ava_actions[aidx]
         return action
 
-    def q_learn(self, state, next_state, action, reward,terminal = True):
-        reward *= self.factor
-        state, mark = state
-        next_state, mark = next_state
-        
-        if not terminal:
-            self.Q[state][action] += self.alpha * \
-                (reward + GAMMA*np.max([self.Q[next_state][a]
-                                        for a in range(self.n_actions)]) - self.Q[state][action])
-            
-        if terminal:
-            self.Q[state][action] += self.alpha * (reward - self.Q[state][action])
-        return self.Q
+    def retake_val(self, state):
+        if state not in V:
+            stats = check_game_status(state[0])
+            val = DEFAULT_VALUE
+
+            if stats > 0:
+                val = O_REWARD if self.mark == 'O' else X_REWARD
+            set_state_value(state, val)
+        return V[state]
+
+    def learn(self, state, next_state, reward):
+        val = self.retake_val(state)
+        next_val = self.retake_val(next_state)
+
+        diff = next_val - val
+        new_val = val + self.alpha * diff
+        set_state_value(state, new_val)
 
 
-def save_model(save_file, Q, max_episode, epsilon, alpha):
+def save_model(save_file, V, max_episode, epsilon, alpha):
     with open(save_file, 'wt') as f:
         # write model info
         info = dict(type="td", max_episode=max_episode, epsilon=epsilon,
                     alpha=alpha)
         # write state values
         f.write('{}\n'.format(json.dumps(info)))
-        for state, value in Q.items():
-            f.write('{}\t{}\n'.format(state, list(value)))
+        for state, value in V.items():
+            f.write('{}\t{}\n'.format(state, value))
 
 
 def load_model(filename):
-    Q = defaultdict(lambda: np.zeros(NUM_LOC, dtype=np.float16))
+    V = {}
     with open(filename, 'rb') as f:
         # read model info
         info = json.loads(f.readline().decode('ascii'))
@@ -144,8 +169,8 @@ def load_model(filename):
             elms = line.decode('ascii').split('\t')
             state = eval(elms[0])
             val = eval(elms[1])
-            Q[state] = np.array(val)
-    return Q
+            V[state] = val
+    return V
 
 
 def sample_game(td_agent):
@@ -181,7 +206,6 @@ def learn_td(epsilon, alpha, save_file=None):
               TDAgent('X', epsilon, alpha)]
     average_rewardsO = []
     average_rewardsX = []
-
     start_mark = 'O'
     for i in tqdm.tqdm(range(MAX_EPISODES)):
         episode = i+1
@@ -197,9 +221,10 @@ def learn_td(epsilon, alpha, save_file=None):
             ava_actions = env.available_actions()
             action = agent.act(state, ava_actions)
             next_state, reward, done, info = env.step(action)
-            agent.q_learn(state, next_state, action, reward,terminal=done)
-            
+            agent.learn(state, next_state, reward)
+
             if done:
+                set_state_value(state, reward)
                 agent = agent_by_mark(agents, 'O')
                 agent.epsilon = max(0, agent.epsilon - DECAY)
 
@@ -219,8 +244,5 @@ def learn_td(epsilon, alpha, save_file=None):
             average_rewardsX.append(-1*samp_valX)
             plot(average_rewardsO, average_rewardsX)
 
-    for player in ['X', 'O']:
-        agent = agent_by_mark(agents, player)
-        save_model(player+MODEL_FILE, agent.Q,
-                   MAX_EPISODES, EPSILON, ALPHA)
-    return agents
+    save_model(MODEL_FILE, V,
+               MAX_EPISODES, EPSILON, ALPHA)
