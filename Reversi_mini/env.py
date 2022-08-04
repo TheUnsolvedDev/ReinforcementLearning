@@ -4,6 +4,33 @@ import time
 
 from params import *
 
+
+def code_to_mark(code):
+    return CODE_MARK_MAP[code]
+
+
+def mark_to_code(mark):
+    return BLACK_DISK if mark == 'B' else WHITE_DISK
+
+
+def next_mark(mark):
+    return 'W' if mark == 'B' else 'B'
+
+
+def agent_by_mark(agents, mark):
+    for agent in agents:
+        if agent.mark == mark:
+            return agent
+
+
+def next_state_show(state, action):
+    board, mark = state
+    nboard = list(board[:])
+    nboard[action] = mark_to_code(mark)
+    nboard = tuple(nboard)
+    return nboard, next_mark(mark)
+
+
 class Reversi_env(gym.Env):
     metadata = {"render.modes": ["np_array", "human"]}
 
@@ -18,10 +45,11 @@ class Reversi_env(gym.Env):
         self.sudden_death_on_invalid_move = True
         self.mute = False
         self.viewer = None
-        self.num_disk_as_reward = False
+        self.num_disk_as_reward = True
 
         # Initialize internal states.
-        self.player_turn = BLACK_DISK
+        self.mark = 'W'
+        self.player_turn = WHITE_DISK
         self.winner = NO_DISK
         self.terminated = False
         self.possible_moves = []
@@ -36,12 +64,12 @@ class Reversi_env(gym.Env):
         if self.possible_actions_in_obs:
             grid_of_possible_moves = np.zeros(self.size ** 2, dtype=bool)
             grid_of_possible_moves[self.possible_moves] = True
-            return np.concatenate([np.expand_dims(state, axis=0),
-                                   grid_of_possible_moves.reshape(
-                                       [1, self.size, self.size])],
-                                  axis=0)
+            return tuple(np.concatenate([np.expand_dims(state, axis=0),
+                                         grid_of_possible_moves.reshape(
+                [1, self.size, self.size])],
+                axis=0).flatten()), self.mark
         else:
-            return state
+            return tuple(state.flatten()), self.mark
 
     def create_board(self):
         board = np.zeros([self.size] * 2, dtype=int)
@@ -263,6 +291,7 @@ class Reversi_env(gym.Env):
                             reward = self.size ** 2
             else:
                 reward = self.winner * current_player
+        self.mark = next_mark(self.mark)
         return self.get_observation(), reward, self.terminated, None
 
     def set_player_turn(self, turn):
@@ -322,5 +351,6 @@ if __name__ == '__main__':
     while not done:
         action = np.random.choice(obj.get_possible_actions())
         state, reward, done, info = obj.step(action)
+        print(state, reward, done, info)
         obj.render()
         time.sleep(0.2)
