@@ -117,7 +117,7 @@ def play_games(no_of_games=10, Q=None):
 
 if __name__ == '__main__':
     play_games(10)
-    Q = monte_carlo(env)
+    # Q = monte_carlo(env)
     print()
     play_games(10,Q = 'lin_mod.h5')
 
