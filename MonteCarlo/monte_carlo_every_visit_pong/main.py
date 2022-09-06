@@ -128,5 +128,5 @@ def monte_carlo(env, episodes=NUM_TRAIN_GAMES):
 
 
 if __name__ == '__main__':
-    # random_gameplay(is_random=False)
-    monte_carlo(train_env)
+    random_gameplay(is_random=True)
+    # monte_carlo(train_env)
