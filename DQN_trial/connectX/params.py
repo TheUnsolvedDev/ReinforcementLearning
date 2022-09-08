@@ -1,0 +1,17 @@
+Train = True
+gamma = 0.99
+copy_step = 250
+hidden_units = [100, 200, 200, 100]
+max_experiences = 1000000
+min_experiences = 100000
+Steps_Till_Backprop = 64
+batch_size = 512
+lr = 1e-3
+epsilon_ep = 0.99
+decay = 0.9999
+min_epsilon = 0.1
+episodes = 20000  # Set this to longer
+precision = 5
+Discard_Q_Value = -1e7
+Metric_Titles = ['Max_Q', 'Avg_Q', 'Min_Q']
+N_Downsampling_Episodes = 200
