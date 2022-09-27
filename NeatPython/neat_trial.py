@@ -20,6 +20,7 @@ def eval_genomes(genomes, configure):
         print('Member:', member)
         score = 0
         observation = env.reset()
+        observation = observation[0]
         done = False
         net = neat.nn.FeedForwardNetwork.create(genome, configure)
 
@@ -29,7 +30,7 @@ def eval_genomes(genomes, configure):
             if render:
                 env.render()
             action = round(net.activate(inputs)[0])
-            observation, reward, done, info = env.step(action)
+            observation, reward, done, info,_ = env.step(action)
             if done:
                 break
             else:
@@ -50,15 +51,16 @@ def eval_genomes(genomes, configure):
 def render_winner(net):
     print('Rendering Winner')
 
-    env = gym.make('CartPole-v0')
+    env = gym.make('CartPole-v1',render_mode = 'human')
     observation = env.reset()
+    observation = observation[0]
     done = False
 
     while not done:
         action = round(net.activate(
             [observation[0], observation[1], observation[2], observation[3]])[0])
         env.render()
-        observation, reward, done, info = env.step(action)
+        observation, reward, done, info,_ = env.step(action)
         if done:
             break
     env.close()
