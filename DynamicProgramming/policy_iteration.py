@@ -75,6 +75,8 @@ def game_simulate(env,policy, trials=10000):
         while not done:
             action = policy[state]
             state, reward, done, info = env.step(action)
+            # env.render()
+            # time.sleep(0.25)
 
             if reward == 1:
                 games_won += 1
