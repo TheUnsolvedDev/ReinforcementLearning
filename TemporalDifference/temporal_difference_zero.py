@@ -21,12 +21,12 @@ def temporal_difference_zero(env, iterations=10000):
     gamma = 0.95
 
     for iter in tqdm.tqdm(range(iterations)):
-        old_state = env.reset()
+        old_state = env.reset()[0]
         done = False
 
         while not done:
             action = env.action_space.sample()
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, _ = env.step(action)
             state_values[old_state] += alpha * \
                 (reward + gamma*state_values[state] - state_values[old_state])
             old_state = state
@@ -35,7 +35,7 @@ def temporal_difference_zero(env, iterations=10000):
 
 
 if __name__ == '__main__':
-    state_values = temporal_difference_zero(env, iterations=5000000)
+    state_values = temporal_difference_zero(env, iterations=50000)
     state_values = np.array([state_values[i] for i in state_values.keys()]).reshape(
         semi_states, semi_states)
     print(state_values)

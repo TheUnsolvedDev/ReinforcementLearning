@@ -25,14 +25,14 @@ def Q_learning(env, iterations=10000):
     decay = 1/iterations
 
     for iter in tqdm.tqdm(range(iterations)):
-        old_state = env.reset()
+        old_state = env.reset()[0]
         done = False
         while not done:
             if np.random.randn() <= epsilon:
                 action = env.action_space.sample()
             else:
                 action = policy[old_state]
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, _ = env.step(action)
 
             Q[old_state][action] += alpha * \
                 (reward + gamma*np.max([Q[state][a]
@@ -49,10 +49,10 @@ def games_trial(env, policy, no_of_games=1000):
     count = 0
     for games in tqdm.tqdm(range(no_of_games)):
         done = False
-        state = env.reset()
+        state = env.reset()[0]
         while not done:
             action = policy[state]
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, _ = env.step(action)
 
             if reward == 1:
                 count += 1

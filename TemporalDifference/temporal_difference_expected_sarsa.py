@@ -24,7 +24,7 @@ def expected_sarsa(env, iterations=10000):
     decay = 1/iterations
 
     for iter in tqdm.tqdm(range(iterations)):
-        old_state = env.reset()
+        old_state = env.reset()[0]
         done = False
 
         while not done:
@@ -34,13 +34,14 @@ def expected_sarsa(env, iterations=10000):
             else:
                 action = policy[old_state]
 
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, _ = env.step(action)
 
             q_values = [Q[state][a] for a in range(n_actions)]
             max_q = np.max(q_values)
             count_max_q = q_values.count(max_q)
             if count_max_q > 1:
-                best_actions = [a for a in range(n_actions) if q_values[a] == max_q]
+                best_actions = [a for a in range(
+                    n_actions) if q_values[a] == max_q]
                 action_index = np.random.choice(best_actions)
             else:
                 action_index = q_values.index(max_q)
@@ -59,7 +60,7 @@ def expected_sarsa(env, iterations=10000):
                 [Q[old_state][a] for a in range(n_actions)])
             old_state = state
         epsilon -= decay
-        epsilon = max(0.1,epsilon)
+        epsilon = max(0.1, epsilon)
 
     return Q, policy
 
@@ -68,10 +69,10 @@ def games_trial(env, policy, no_of_games=1000):
     count = 0
     for games in tqdm.tqdm(range(no_of_games)):
         done = False
-        state = env.reset()
+        state = env.reset()[0]
         while not done:
             action = policy[state]
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, _ = env.step(action)
 
             if reward == 1:
                 count += 1
