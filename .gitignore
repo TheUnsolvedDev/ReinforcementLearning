@@ -8,3 +8,6 @@ book/backgrounds/background8.pdf
 book/images/AE.png
 *.png
 *.jpg
+Misc/gym-image-maze/
+Misc/gym-maze/
+Misc/mazelab/
