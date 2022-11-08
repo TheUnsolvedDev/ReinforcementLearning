@@ -157,6 +157,7 @@ def games_trial(env, policy, no_of_games=100):
     for games in tqdm.tqdm(range(no_of_games)):
         done = False
         state = env.reset()
+        env.maze[3,2] = 0
         while not done:
             action = policy[state]
             state, reward, done, info, _ = env.step(action)
