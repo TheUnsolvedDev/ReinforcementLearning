@@ -282,8 +282,8 @@ if __name__ == '__main__':
         # if the move wins the game, then break
         if game.make_move(move):
             if game.turn == 1:
-                print('Player 1 wins the game')
-            else:
                 print('Player 2 wins the game')
+            else:
+                print('Player 1 wins the game')
             break
     game.show()
