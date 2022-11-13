@@ -87,7 +87,7 @@ def semi_gradient_mc(env, iterations=200):
             rewards.append(reward)
 
         total_reward = 0
-        for ind in range(len(states)-1, -1, -1):
+        for ind in range(len(states)):
             total_reward += rewards[ind]
             state = states[ind]
             S = get_state_feature(state)
