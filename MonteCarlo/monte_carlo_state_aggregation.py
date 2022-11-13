@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 import gym
 import tqdm
-import matplotlib.pyplot as plt
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -69,8 +68,7 @@ def neural_network(input_shape=(NUM_GROUPS,)):
     model = tf.keras.Model(inputs, output)
     return model
 
-
-def semi_gradient_td(env, iterations=200):
+def semi_gradient_mc(env, iterations=200):
     alpha = 0.1
     gamma = 1
     nn = neural_network()
@@ -79,28 +77,29 @@ def semi_gradient_td(env, iterations=200):
         done = env.done
         state = env.reset()
         S = get_state_feature(state)
+        states = []
+        rewards = []
         while not done:
             action = np.random.choice([0, 1])
-            state_prime, reward, done, info, _ = env.step(action)
-            S_prime = get_state_feature(state_prime)
+            states.append(state)
+            state, reward, done, info, _ = env.step(action)
+            S = get_state_feature(state)
+            rewards.append(reward)
+
+        total_reward = 0
+        for ind in range(len(states)-1, -1, -1):
+            total_reward += rewards[ind]
+            state = states[ind]
+            S = get_state_feature(state)
             with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
-                last_value = nn(tf.expand_dims(S, axis=0))
-                current_value = nn(tf.expand_dims(S_prime, axis=0))
-                delta = reward + gamma*current_value - last_value
+                current_value= nn(tf.expand_dims(S, axis = 0))
+                delta = total_reward - current_value
             grads = tape.gradient(delta, nn.trainable_variables)
             optimizer.apply_gradients(zip(grads, nn.trainable_variables))
-            state = state_prime
+
     nn.save_weights('nn.h5')
 
 
 if __name__ == '__main__':
     env = RandomWalk()
-    semi_gradient_td(env)
-    nn = neural_network()
-    nn.load_weights('nn.h5')
-
-    states = np.array([get_state_feature(i) for i in range(NUM_GROUPS)])
-    print(states.shape)
-    state_values = nn(states)
-    plt.plot(state_values)
-    plt.show()
+    semi_gradient_mc(env)
