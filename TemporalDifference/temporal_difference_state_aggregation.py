@@ -72,7 +72,7 @@ def neural_network(input_shape=(NUM_GROUPS,)):
 
 def semi_gradient_td(env, iterations=200):
     alpha = 0.1
-    gamma = 1
+    gamma = 0.99
     nn = neural_network()
     optimizer = tf.keras.optimizers.Adam()
     for iter in tqdm.tqdm(range(iterations)):
@@ -86,7 +86,7 @@ def semi_gradient_td(env, iterations=200):
             with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
                 last_value = nn(tf.expand_dims(S, axis=0))
                 current_value = nn(tf.expand_dims(S_prime, axis=0))
-                delta = reward + gamma*current_value - last_value
+                delta = tf.square(reward + gamma*current_value - last_value)
             grads = tape.gradient(delta, nn.trainable_variables)
             optimizer.apply_gradients(zip(grads, nn.trainable_variables))
             state = state_prime
