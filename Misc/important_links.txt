@@ -1,0 +1,5 @@
+# openAI spinning up:
+https://spinningup.openai.com/en/latest/index.html
+
+# Hugginf face deep rl class:
+https://github.com/huggingface/deep-rl-class#the-syllabus-%EF%B8%8F
