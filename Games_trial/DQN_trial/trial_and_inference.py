@@ -1,5 +1,5 @@
 
-from IPython import display
+
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,8 +20,6 @@ plt.ion()
 
 
 def plot(scores):  # , mean_scores):
-    display.clear_output(wait=True)
-    display.display(plt.gcf())
     plt.clf()
     plt.title('Training...')
     plt.xlabel('Number of Games')
@@ -39,7 +37,7 @@ def evaluate_training_result(env, agent, show=False, train=True):
     total_reward = 0.0
     episodes_to_play = 30
     for i in range(episodes_to_play):
-        state = env.reset()
+        state = env.reset()[0]
         done = False
         episode_reward = 0.0
         while not done:
@@ -49,7 +47,7 @@ def evaluate_training_result(env, agent, show=False, train=True):
 
             if show:
                 env.render()
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _, info = env.step(action)
             episode_reward += reward
             state = next_state
         total_reward += episode_reward
@@ -59,11 +57,11 @@ def evaluate_training_result(env, agent, show=False, train=True):
 
 
 def collect_gameplay_experiences(env, agent, buffer):
-    state = env.reset()
+    state = env.reset()[0]
     done = False
     while not done:
         action = agent.policy(state)
-        next_state, reward, done, _ = env.step(action)
+        next_state, reward, done, _, info = env.step(action)
         if done:
             reward = -1.0
         buffer.store_gameplay(state, action, reward, done, next_state)
@@ -75,8 +73,6 @@ def train_model(env, episodes=10000):
     gamma = 0.95
     agent = QN(decay=decay)
     buffer = ReplayBuffer()
-    for _ in tqdm.tqdm(range(128)):
-        collect_gameplay_experiences(env, agent, buffer)
     average_rewards = []
     # total_epicodes = []
     for eps in range(episodes):
