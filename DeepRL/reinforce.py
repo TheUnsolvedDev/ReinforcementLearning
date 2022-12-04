@@ -42,13 +42,14 @@ class agent:
         return loss
 
     def train(self, states, rewards, actions):
-        sum_reward = 0
         discnt_rewards = []
-        rewards.reverse()
-        for r in rewards:
-            sum_reward = r + gamma*sum_reward
+        for t in range(len(rewards)):
+            sum_reward = 0
+            discount = 1
+            for k in range(t, len(rewards)):
+                sum_reward += rewards[k]*discount
+                discount *= gamma
             discnt_rewards.append(sum_reward)
-        discnt_rewards.reverse()
 
         for state, reward, action in zip(states, discnt_rewards, actions):
             with tf.GradientTape() as tape:
@@ -79,7 +80,7 @@ def main():
     agentoo7 = agent()
     total_rewards = []
     mean_rewards = []
-    for game in range(3000):
+    for game in range(1000):
         state = env.reset()[0]
         total_reward = 0
         rewards = []
@@ -100,11 +101,15 @@ def main():
                 #print("total step for this episord are {}".format(t))
                 print("total reward after {} steps is {}".format(
                     game, total_reward))
-        total_rewards.append(total_reward)
-        mean_rewards.append(np.mean(total_rewards))
-        plot(total_rewards, mean_rewards)
 
-        agentoo7.model.save_weights('reinforce_model.h5')
+        total_rewards.append(total_reward)
+        avg_reward = np.mean(total_rewards)
+        if total_reward > avg_reward:
+            agentoo7.model.save_weights('reinforce_model.h5')
+            print('...model save success...')
+
+        mean_rewards.append(avg_reward)
+        plot(total_rewards, mean_rewards)
 
 
 if __name__ == '__main__':
