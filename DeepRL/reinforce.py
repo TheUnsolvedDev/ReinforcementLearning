@@ -59,26 +59,27 @@ class agent:
                 zip(grads, self.model.trainable_variables))
 
 
-
-def plot(scores):  # , mean_scores):
+def plot(scores, mean_scores):
     plt.ion()
     plt.clf()
-    plt.title('Training...')
+    plt.title('Training Reinforce.')
     plt.xlabel('Number of Games')
     plt.ylabel('Score')
     plt.plot(scores)
-    # plt.plot(mean_scores)
+    plt.plot(mean_scores)
     plt.ylim(ymin=0)
     plt.text(len(scores)-1, scores[-1], str(scores[-1]))
-    # plt.text(len(mean_scores)-1, mean_scores[-1], str(mean_scores[-1]))
+    plt.text(len(mean_scores)-1, mean_scores[-1], str(mean_scores[-1]))
     plt.show(block=False)
     plt.pause(0.001)
+    plt.savefig('TrainingAndInferenceReinforce.png')
 
 
 def main():
     agentoo7 = agent()
     total_rewards = []
-    for game in range(300):
+    mean_rewards = []
+    for game in range(3000):
         state = env.reset()[0]
         total_reward = 0
         rewards = []
@@ -100,9 +101,10 @@ def main():
                 print("total reward after {} steps is {}".format(
                     game, total_reward))
         total_rewards.append(total_reward)
-        plot(total_rewards)
+        mean_rewards.append(np.mean(total_rewards))
+        plot(total_rewards, mean_rewards)
 
-    agentoo7.model.save('reinforce_model.h5')
+        agentoo7.model.save_weights('reinforce_model.h5')
 
 
 if __name__ == '__main__':
