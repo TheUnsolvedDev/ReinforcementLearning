@@ -35,15 +35,15 @@ class agent:
         action = categorical.sample()
         return int(action.numpy()[0])
 
-    def a_loss(self, prob, action, reward):
+    def a_log_prob(self, prob, action):
         dist = tfp.distributions.Categorical(logits=prob, dtype=tf.float32)
         log_prob = dist.log_prob(action)
-        loss = -log_prob*reward
-        return loss
+        return log_prob
 
     def train(self, states, rewards, actions):
+        raise NotImplementedError
         discnt_rewards = []
-        for t in range(len(rewards)):
+        for t in range(len(rewards)):  # reward-to-go
             sum_reward = 0
             discount = 1
             for k in range(t, len(rewards)):
@@ -52,9 +52,14 @@ class agent:
             discnt_rewards.append(sum_reward)
 
         for state, reward, action in zip(states, discnt_rewards, actions):
+            p_log_prob = 0
+            q_log_prob = 0
+
+        for state, reward, action in zip(states, discnt_rewards, actions):
             with tf.GradientTape() as tape:
                 p = self.model(np.array([state]), training=True)
-                loss = self.a_loss(p, action, reward)
+                log_prob = self.a_log_prob(p, action)
+                loss = -log_prob*reward
             grads = tape.gradient(loss, self.model.trainable_variables)
             self.opt.apply_gradients(
                 zip(grads, self.model.trainable_variables))
