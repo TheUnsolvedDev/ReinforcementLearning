@@ -74,7 +74,7 @@ class agent():
             buffer_size=1000000, state_dim=env.observation_space.shape)
         self.batch_size = 64
         self.gamma = 0.99
-        self.replace = 100
+        self.replace = 20
         self.trainstep = 0
         self.action_space = [i for i in range(out_dim)]
 
@@ -147,7 +147,7 @@ def plot(scores, mean_scores):
 
 def main():
     agentoo7 = agent()
-    agentoo7.load_model()
+    # agentoo7.load_model()
     # agentoo7.epsilon = 0
     total_rewards = []
     mean_rewards = []
