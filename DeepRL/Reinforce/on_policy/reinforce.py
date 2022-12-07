@@ -7,7 +7,8 @@ import tensorflow_probability as tfp
 
 # env = gym.make("LunarLander-v2", max_episode_steps=500,
 #                enable_wind=True, render_mode='human')
-env = gym.make('CartPole-v1', max_episode_steps=500, render_mode='human')
+env = gym.make('CartPole-v1', render_mode='human')
+env._max_episode_steps = 1000
 gamma = 0.99
 alpha = 0.003
 in_dim = env.observation_space.shape[0]
@@ -94,6 +95,7 @@ def plot(scores, mean_scores):
 
 def main():
     agentoo7 = agent()
+    max_episode_steps = 500
     total_rewards = []
     mean_rewards = []
     avg_reward = 0
