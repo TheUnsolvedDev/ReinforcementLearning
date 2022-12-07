@@ -4,8 +4,8 @@ import gym
 import tensorflow as tf
 import tensorflow_probability as tfp
 
-env = gym.make('CartPole-v1')
-env.max_episode_steps = 1000
+env = gym.make('CartPole-v0', max_episode_steps=500)
+env.reward_threshold=500
 test_env = gym.make('CartPole-v1', render_mode='human')
 
 gamma = 0.99
@@ -16,7 +16,7 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
-def model(in_dim, out_dim):
+def model(in_dim=in_dim, out_dim=out_dim):
     inputs = tf.keras.layers.Input(in_dim)
     hidden = tf.keras.layers.Dense(64, activation='relu')(inputs)
     hidden1 = tf.keras.layers.Dense(32, activation='relu')(hidden)
@@ -24,9 +24,38 @@ def model(in_dim, out_dim):
     return tf.keras.Model(inputs, outputs)
 
 
+class BaselineNet():
+    def __init__(self, input_size, output_size):
+        self.model = tf.keras.Sequential(
+            layers=[
+                tf.keras.layers.Input(shape=(input_size,)),
+                tf.keras.layers.Dense(
+                    64, activation="relu", name="relu_layer"),
+                tf.keras.layers.Dense(output_size, activation="linear",
+                                      name="linear_layer")
+            ],
+            name="baseline")
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+
+    def forward(self, observations):
+        observations = np.array(observations)
+        output = tf.squeeze(self.model(observations))
+        return output
+
+    def update(self, observations, target):
+        with tf.GradientTape() as tape:
+            predictions = self.forward(observations)
+            loss = tf.keras.losses.mean_squared_error(
+                y_true=target, y_pred=predictions)
+        grads = tape.gradient(loss, self.model.trainable_weights)
+        self.optimizer.apply_gradients(
+            zip(grads, self.model.trainable_weights))
+
+
 class agent:
     def __init__(self) -> None:
         self.model = model(in_dim, out_dim)
+        self.baseline_net = BaselineNet(in_dim, 1)
         self.opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 
     def act(self, state):
@@ -35,13 +64,21 @@ class agent:
         action = categorical.sample()
         return int(action.numpy()[0])
 
+    @tf.function
     def a_loss(self, prob, action, reward):
         dist = tfp.distributions.Categorical(logits=prob, dtype=tf.float32)
         log_prob = dist.log_prob(action)
-        loss = -log_prob*reward
-        return loss
+        loss = -log_prob*tf.cast(reward, dtype=tf.float32)
+        return tf.reduce_mean(loss)
 
-    def train(self, states, rewards, actions):
+    def get_advantage(self, returns, observations):
+        values = self.baseline_net.forward(observations).numpy()
+        advantages = returns - values
+        advantages = (advantages-np.mean(advantages)) / \
+            np.sqrt(np.sum(advantages**2))
+        return advantages
+
+    def discounted_reward(self, rewards):
         discnt_rewards = []
         sum_reward = 0
         rewards.reverse()
@@ -49,14 +86,20 @@ class agent:
             sum_reward = r + gamma*sum_reward
             discnt_rewards.append(sum_reward)
         discnt_rewards.reverse()
+        return discnt_rewards
 
-        for state, reward, action in zip(states, discnt_rewards, actions):
-            with tf.GradientTape() as tape:
-                p = self.model(np.array([state]), training=True)
-                loss = self.a_loss(p, action, reward)
-            grads = tape.gradient(loss, self.model.trainable_variables)
-            self.opt.apply_gradients(
-                zip(grads, self.model.trainable_variables))
+    # @tf.function
+    def train(self, states, rewards, actions):
+        discnt_rewards = self.discounted_reward(rewards)
+        advantages = self.get_advantage(discnt_rewards, states)
+        self.baseline_net.update(observations=states, target=discnt_rewards)
+
+        with tf.GradientTape() as tape:
+            p = self.model(np.array(states), training=True)
+            loss = self.a_loss(p, actions, advantages)
+        grads = tape.gradient(loss, self.model.trainable_variables)
+        self.opt.apply_gradients(
+            zip(grads, self.model.trainable_variables))
 
 
 def plot(scores, mean_scores):
@@ -72,7 +115,7 @@ def plot(scores, mean_scores):
     plt.text(len(mean_scores)-1, mean_scores[-1], str(mean_scores[-1]))
     plt.show(block=False)
     plt.pause(0.001)
-    plt.savefig('TrainingAndInferenceReinforce.png')
+    plt.savefig('TrainingAndInferenceReinforceBaseline.png')
 
 
 def main():
@@ -97,14 +140,13 @@ def main():
 
             if done:
                 agentoo7.train(states, rewards, actions)
-                #print("total step for this episord are {}".format(t))
                 print("total reward after {} steps is {}".format(
                     game, total_reward))
 
         total_rewards.append(total_reward)
         avg_reward = np.mean(total_rewards)
         if total_reward > avg_reward:
-            agentoo7.model.save_weights('reinforce_model.h5')
+            agentoo7.model.save_weights('reinforce_model_baseline.h5')
             print('...model save success...')
 
         mean_rewards.append(avg_reward)
