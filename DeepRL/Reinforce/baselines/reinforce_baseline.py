@@ -4,8 +4,10 @@ import gym
 import tensorflow as tf
 import tensorflow_probability as tfp
 
-# , render_mode='human')
-env = gym.make("LunarLander-v2", max_episode_steps=500)
+
+# env = gym.make("LunarLander-v2", max_episode_steps=500,
+#                enable_wind=True, render_mode='human')
+env = gym.make('CartPole-v1', max_episode_steps=500, render_mode='human')
 gamma = 0.99
 in_dim = env.observation_space.shape[0]
 out_dim = env.action_space.n

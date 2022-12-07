@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-MAX_EPISODES = 500
-env = gym.make('CartPole-v1')#,render_mode = 'human')
-env.max_episode_steps = 1000
-test_env = gym.make('CartPole-v1', render_mode='human')
+MAX_EPISODES = 1000
+# env = gym.make("LunarLander-v2", max_episode_steps=500,
+#                enable_wind=True, render_mode='human')
+env = gym.make('CartPole-v1', max_episode_steps=500, render_mode='human')
 
 gamma = 0.99
 in_dim = env.observation_space.shape[0]
@@ -68,7 +68,7 @@ class agent():
         self.q_net.compile(optimizer=opt, loss='mse')
         self.target_net.compile(optimizer=opt, loss='mse')
         self.epsilon = 1.0
-        self.epsilon_decay = 1/(0.6*MAX_EPISODES)#1e-4*5
+        self.epsilon_decay = 1/(0.6*MAX_EPISODES)  # 1e-4*5
         self.min_epsilon = 0.01
         self.memory = experience(
             buffer_size=1000000, state_dim=env.observation_space.shape)
@@ -96,7 +96,7 @@ class agent():
         states, actions, rewards, next_states, dones = self.memory.sample_exp(
             self.batch_size)
         target = action_value(self.q_net, states)
-        next_state_val = action_value(self.target_net,next_states)
+        next_state_val = action_value(self.target_net, next_states)
         q_next = tf.math.reduce_max(
             next_state_val, axis=1, keepdims=True).numpy()
         q_target = np.copy(target)
@@ -151,6 +151,7 @@ def main():
     # agentoo7.epsilon = 0
     total_rewards = []
     mean_rewards = []
+    avg_reward = 0
     for game in range(MAX_EPISODES):
         state = env.reset()[0]
         done = False
@@ -165,8 +166,8 @@ def main():
             total_reward += reward
             t += 1
             if done:
-                print("total reward after {} episode is {} and epsilon is {}".format(
-                    game, total_reward, agentoo7.epsilon))
+                print("total reward after {} steps is {} avg reward {}".format(
+                    game, total_reward, avg_reward))
         agentoo7.update_epsilon()
         total_rewards.append(total_reward)
         avg_reward = np.mean(total_rewards)
@@ -175,7 +176,7 @@ def main():
             print('...model save success...')
 
         mean_rewards.append(avg_reward)
-        plot(total_rewards, mean_rewards)
+    plot(total_rewards, mean_rewards)
 
 
 if __name__ == '__main__':

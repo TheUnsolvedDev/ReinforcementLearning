@@ -4,11 +4,9 @@ import gym
 import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
 
-# env = gym.make("LunarLander-v2")
-env = gym.make('CartPole-v1')
-env.max_episode_steps = 1000
-low = env.observation_space.low
-high = env.observation_space.high
+# env = gym.make("LunarLander-v2", max_episode_steps=500,
+#                enable_wind=True, render_mode='human')
+env = gym.make('CartPole-v1', max_episode_steps=500, render_mode='human')
 gamma = 0.99
 in_dim = env.observation_space.shape[0]
 out_dim = env.action_space.n
@@ -91,6 +89,7 @@ def main():
     agentoo7 = agent()
     total_rewards = []
     mean_rewards = []
+    avg_reward = 0
     for game in range(1000):
         state = env.reset()[0]
         total_reward = 0
@@ -110,8 +109,8 @@ def main():
 
             if done:
                 #print("total step for this episord are {}".format(t))
-                print("total reward after {} steps is {}".format(
-                    game, total_reward))
+                print("total reward after {} steps is {} avg reward {}".format(
+                    game, total_reward, avg_reward))
         total_rewards.append(total_reward)
         avg_reward = np.mean(total_rewards)
         if total_reward > avg_reward:
@@ -120,7 +119,7 @@ def main():
             print('...model save success...')
 
         mean_rewards.append(avg_reward)
-        plot(total_rewards, mean_rewards)
+    plot(total_rewards, mean_rewards)
 
 
 if __name__ == '__main__':
