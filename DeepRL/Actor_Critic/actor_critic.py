@@ -33,8 +33,10 @@ def critic(in_dim=in_dim):
 class agent():
     def __init__(self, gamma=0.99):
         self.gamma = gamma
-        self.a_opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-        self.c_opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+        self.decay = tf.optimizers.schedules.ExponentialDecay(
+            0.001, 100000, 0.99)
+        self.a_opt = tf.keras.optimizers.Adam(learning_rate=self.decay)
+        self.c_opt = tf.keras.optimizers.Adam(learning_rate=self.decay)
         self.actor = actor()
         self.critic = critic()
         self.log_prob = None
@@ -69,6 +71,9 @@ class agent():
             zip(grads2, self.critic.trainable_variables))
         return a_loss, c_loss
 
+    def load_actor(self):
+        self.actor.load_weights('actor_ac_model.h5')
+
 
 def plot(scores, mean_scores):
     plt.ion()
@@ -85,12 +90,14 @@ def plot(scores, mean_scores):
     plt.savefig('TrainingAndInferenceActorCritic.png')
 
 
-def main():
+def main(infernence=False, max_episode=1000):
     agentoo7 = agent()
+    if infernence:
+        agentoo7.load_actor()
     total_rewards = []
     mean_rewards = []
     avg_reward = 0
-    for game in range(1000):
+    for game in range(max_episode):
         state = env.reset()[0]
         total_reward = 0
         all_aloss = []
@@ -100,10 +107,11 @@ def main():
         while not done:
             action = agentoo7.act(state)
             next_state, reward, done, info, _ = env.step(action)
-            aloss, closs = agentoo7.learn(
-                state, action, reward, next_state, done)
-            all_aloss.append(aloss)
-            all_closs.append(closs)
+            if not infernence:
+                aloss, closs = agentoo7.learn(
+                    state, action, reward, next_state, done)
+                all_aloss.append(aloss)
+                all_closs.append(closs)
             state = next_state
             total_reward += reward
 
@@ -113,7 +121,7 @@ def main():
                     game, total_reward, avg_reward))
         total_rewards.append(total_reward)
         avg_reward = np.mean(total_rewards)
-        if total_reward > avg_reward:
+        if total_reward > avg_reward and not infernence:
             agentoo7.actor.save_weights('actor_ac_model.h5')
             agentoo7.critic.save_weights('critic_ac_model.h5')
             print('...model save success...')
@@ -124,3 +132,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    main(infernence=True, max_episode=10)
