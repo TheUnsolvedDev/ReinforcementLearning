@@ -12,6 +12,7 @@ in_dim = env.observation_space.shape[0]
 out_dim = env.action_space.n
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
+MAX_STEPS = 50000
 
 
 def actor(in_dim=in_dim, out_dim=out_dim):
@@ -102,9 +103,12 @@ def main(infernence=False, max_episode=1000):
         total_reward = 0
         all_aloss = []
         all_closs = []
-
+        t = 0
         done = False
         while not done:
+            if t > MAX_STEPS:
+                break
+            t += 1
             action = agentoo7.act(state)
             next_state, reward, done, info, _ = env.step(action)
             if not infernence:

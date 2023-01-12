@@ -7,6 +7,7 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 MAX_EPISODES = 1000
+MAX_STEPS = 50000
 # env = gym.make("LunarLander-v2", max_episode_steps=500,
 #                enable_wind=True, render_mode='human')
 env = gym.make('CartPole-v1', max_episode_steps=500, render_mode='human')
@@ -121,12 +122,12 @@ class agent():
         return self.epsilon
 
     def save_model(self):
-        self.q_net.save_weights("model.weights")
-        self.target_net.save_weights("target_model.weights")
+        self.q_net.save_weights("model.h5")
+        self.target_net.save_weights("target_model.h5")
 
     def load_model(self):
-        self.q_net.load_weights("target_model.weights")
-        self.target_net.load_weights("target_model.weights")
+        self.q_net.load_weights("target_model.h5")
+        self.target_net.load_weights("target_model.h5")
 
 
 def plot(scores, mean_scores):
@@ -158,6 +159,8 @@ def main():
         total_reward = 0
         t = 0
         while not done:
+            if t > MAX_STEPS:
+                break
             action = agentoo7.act(state)
             next_state, reward, done, info, _ = env.step(int(action))
             agentoo7.update_mem(state, action, reward, next_state, done)

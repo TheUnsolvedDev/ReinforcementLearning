@@ -51,6 +51,7 @@ class agent():
     def actor_loss(self, probs, actions, td):
         probability = []
         log_probability = []
+        print(probs,actions)
         for pb, a in zip(probs, actions):
             dist = tfp.distributions.Categorical(probs=pb, dtype=tf.float32)
             log_prob = dist.log_prob(a)
@@ -73,6 +74,23 @@ class agent():
         e_loss = tf.reduce_mean(e_loss)
         loss = -p_loss - 0.0001 * e_loss
         return loss
+
+    def learn(self, state, action, reward, next_state, done):
+        state = np.array([state])
+        next_state = np.array([next_state])
+        with tf.GradientTape(persistent=True) as tape1, tf.GradientTape(persistent=True) as tape2:
+            p = self.actor(state, training=True)
+            v = self.critic(state, training=True)
+            vn = self.critic(next_state, training=True)
+            td = reward + self.gamma*vn*(1-int(done)) - v
+            a_loss = self.actor_loss(p, action, td)
+            c_loss = td**2
+        grads1 = tape1.gradient(a_loss, self.actor.trainable_variables)
+        grads2 = tape2.gradient(c_loss, self.critic.trainable_variables)
+        self.a_opt.apply_gradients(zip(grads1, self.actor.trainable_variables))
+        self.c_opt.apply_gradients(
+            zip(grads2, self.critic.trainable_variables))
+        return a_loss, c_loss
 
 
 def main():

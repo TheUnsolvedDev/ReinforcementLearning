@@ -13,6 +13,7 @@ gamma = 0.99
 alpha = 0.003
 in_dim = env.observation_space.shape[0]
 out_dim = env.action_space.n
+MAX_STEPS = 50000
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -103,13 +104,16 @@ def main():
         state = env.reset()[0]
         total_reward = 0
         done = False
+        t = 0
         while not done:
+            if t > MAX_STEPS:
+                break
             action = agentoo7.act(state)
             next_state, reward, done, info, _ = env.step(action)
             agentoo7.store_transition(state, action, reward)
             state = next_state
             total_reward += reward
-
+            t += 1
             if done:
                 agentoo7.train()
                 #print("total step for this episord are {}".format(t))
