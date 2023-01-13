@@ -5,12 +5,11 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 env = gym.make('CartPole-v1', render_mode='human')
-max_episode_steps = 5000
 gamma = 0.99
 alpha = 0.003
 in_dim = env.observation_space.shape[0]
 out_dim = env.action_space.n
-MAX_STEPS = 50000
+MAX_STEPS = 10000
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -102,28 +101,18 @@ def main():
         done = False
         t = 0
         while not done:
-<<<<<<< Updated upstream
             if t > MAX_STEPS:
-=======
-            if step > max_episode_steps:
->>>>>>> Stashed changes
                 break
             action = agentoo7.act(state)
             next_state, reward, done, info, _ = env.step(action)
             agentoo7.store_transition(state, action, reward)
             state = next_state
             total_reward += reward
-<<<<<<< Updated upstream
             t += 1
-=======
-            step += 1
 
->>>>>>> Stashed changes
-            if done:
-                agentoo7.train()
-                print("total reward after {} steps is {} avg reward {}".format(
-                    game, total_reward, avg_reward))
-
+        agentoo7.train()
+        print("total reward after {} steps is {} avg reward {}".format(
+            game, total_reward, avg_reward))
         total_rewards.append(total_reward)
         avg_reward = np.mean(total_rewards)
         if total_reward > avg_reward:
