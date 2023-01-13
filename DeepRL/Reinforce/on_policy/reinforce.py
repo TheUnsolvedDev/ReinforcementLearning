@@ -4,11 +4,8 @@ import gym
 import tensorflow as tf
 import tensorflow_probability as tfp
 
-
-# env = gym.make("LunarLander-v2", max_episode_steps=500,
-#                enable_wind=True, render_mode='human')
 env = gym.make('CartPole-v1', render_mode='human')
-env._max_episode_steps = 1000
+max_episode_steps = 5000
 gamma = 0.99
 alpha = 0.003
 in_dim = env.observation_space.shape[0]
@@ -61,10 +58,8 @@ class agent:
         G = np.zeros_like(rewards)
         for t in range(len(rewards)):
             G_sum = 0
-            discount = 1
             for k in range(t, len(rewards)):
-                G_sum += rewards[k]*discount
-                discount *= gamma
+                G_sum += rewards[k]*gamma
             G[t] = G_sum
 
         with tf.GradientTape() as tape:
@@ -101,22 +96,31 @@ def main():
     mean_rewards = []
     avg_reward = 0
     for game in range(1000):
+        step = 0
         state = env.reset()[0]
         total_reward = 0
         done = False
         t = 0
         while not done:
+<<<<<<< Updated upstream
             if t > MAX_STEPS:
+=======
+            if step > max_episode_steps:
+>>>>>>> Stashed changes
                 break
             action = agentoo7.act(state)
             next_state, reward, done, info, _ = env.step(action)
             agentoo7.store_transition(state, action, reward)
             state = next_state
             total_reward += reward
+<<<<<<< Updated upstream
             t += 1
+=======
+            step += 1
+
+>>>>>>> Stashed changes
             if done:
                 agentoo7.train()
-                #print("total step for this episord are {}".format(t))
                 print("total reward after {} steps is {} avg reward {}".format(
                     game, total_reward, avg_reward))
 
