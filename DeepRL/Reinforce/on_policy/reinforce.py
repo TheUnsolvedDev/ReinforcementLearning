@@ -42,12 +42,20 @@ class agent:
         action = categorical.sample()
         return int(action.numpy()[0])
 
-    @tf.function
     def a_loss(self, prob, action, reward):
         dist = tfp.distributions.Categorical(probs=prob, dtype=tf.float32)
         log_prob = dist.log_prob(action)
         loss = -log_prob*tf.cast(reward, dtype=tf.float32)
         return tf.reduce_mean(loss)
+
+    @tf.function
+    def train_step(self, states, actions, G):
+        with tf.GradientTape() as tape:
+            p = self.model(np.array(states), training=True)
+            loss = self.a_loss(prob, action, G)
+        grads = tape.gradient(loss, self.model.trainable_variables)
+        self.opt.apply_gradients(
+            zip(grads, self.model.trainable_variables))
 
     def train(self):
         states = tf.convert_to_tensor(self.state_memory, dtype=tf.float32)
@@ -61,12 +69,8 @@ class agent:
                 G_sum += rewards[k]*gamma
             G[t] = G_sum
 
-        with tf.GradientTape() as tape:
-            p = self.model(np.array(states), training=True)
-            loss = self.a_loss(p, actions, G)
-        grads = tape.gradient(loss, self.model.trainable_variables)
-        self.opt.apply_gradients(
-            zip(grads, self.model.trainable_variables))
+        for i in range(1):
+            self.train_step(states, actions, G)
 
         self.state_memory = []
         self.action_memory = []
@@ -90,7 +94,6 @@ def plot(scores, mean_scores):
 
 def main():
     agentoo7 = agent()
-    max_episode_steps = 500
     total_rewards = []
     mean_rewards = []
     avg_reward = 0
