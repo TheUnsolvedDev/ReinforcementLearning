@@ -1,19 +1,22 @@
 
+from stack_frame import *
+from agents import *
+from params import *
 import gym
 import random
 import numpy
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import tqdm
+import argparse
+from silence_tensorflow import silence_tensorflow
+silence_tensorflow()
 
-from params import *
-from agents import *
-from stack_frame import *
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-env = gym.make('PongDeterministic-v4', render_mode='rgb_array')#'human')
+env = gym.make('PongDeterministic-v4', render_mode='rgb_array')  # 'human')
 env.metadata['render_fps'] = 144
 env.reset()
 
@@ -36,7 +39,7 @@ def epsilon_by_epsiode(frame_idx): return EPS_END + \
     (EPS_START - EPS_END) * np.exp(-1. * frame_idx / EPS_DECAY)
 
 
-def train(agent, n_episodes=1000):
+def train(agent, n_episodes=50000):
     start_epoch = 0
     scores = []
     scores_window = deque(maxlen=20)
@@ -75,9 +78,29 @@ def train(agent, n_episodes=1000):
 
 
 if __name__ == '__main__':
-    random_play()
-    print(env.action_space.n)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--agent', help='Choose training agent.',
+                        default='DQN_agent', choices=['DQN_agent', 'DDQN_agent', 'Reinforce_agent', 'Reinforce_agent_baseline'])
+    parser.add_argument('--batch_size', help='Number of training batches', type=int,
+                        default=128, choices=[16, 32, 64, 128, 256, 512])
+    args = parser.parse_args()
 
-    DQNA = DQN_agent()
-    DQNA.load_model()
-    train(DQNA)
+    print()
+    print('***** Training Agent:', args.agent, '*****')
+    print()
+
+    if args.agent == 'DQN_agent':
+        agent = DQN_agent(sample_size=args.batch_size)
+    if args.agent == 'DDQN_agent':
+        agent = DDQN_agent(sample_size=args.batch_size)
+    if args.agent == 'Reinforce_agent':
+        agent = Reinforce_agent(sample_size=args.batch_size)
+    if args.agent == 'Reinforce_agent_baseline':
+        agent = Reinforce_agent(
+            sample_size=args.batch_size, use_baseline=True)
+
+    try:
+        agent.load_model()
+    except FileNotFoundError:
+        pass
+    train(agent)
