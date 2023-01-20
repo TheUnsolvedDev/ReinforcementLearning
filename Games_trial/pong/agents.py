@@ -118,6 +118,10 @@ class DDQN_agent(DQN_agent):
         self.cnn.load_weights("DDQN_target_model.h5")
         self.target_cnn.load_weights("DDQN_target_model.h5")
 
+class DDDQN_agent(DQN_agent):
+    def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE):
+        super().__init__(epsilon, gamma, memory_capacity, sample_size)
+
 
 class Reinforce_agent:
     def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE, use_baseline=False):
@@ -186,7 +190,7 @@ class Reinforce_agent:
         if self.use_baseline:
             advantages = self.get_advantage(returns, states)
             with tf.GradientTape() as tape:
-                predictions = self.baseline_cnn(ostates)
+                predictions = self.baseline_cnn(states)
                 loss = tf.keras.losses.mean_squared_error(
                     y_true=returns, y_pred=predictions)
             grads = tape.gradient(loss, self.baseline_cnn.trainable_weights)
