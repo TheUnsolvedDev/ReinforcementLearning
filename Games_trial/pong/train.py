@@ -49,7 +49,6 @@ def train(agent, n_episodes=50000):
         score = 0
         eps = epsilon_by_epsiode(i_episode)
         while True:
-            print(len(agent.memory))
             action = agent.act(state, eps)
             next_state, reward, done, info, trauncated = env.step(action)
             score += reward
