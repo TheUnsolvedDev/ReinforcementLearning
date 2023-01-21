@@ -7,7 +7,7 @@ from model import *
 from replay_buffer import *
 
 
-class DQN_agent:
+class DeepQNetwork_agent:
     def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE):
         self.memory_capacity = memory_capacity
         self.epsilon = epsilon
@@ -40,19 +40,24 @@ class DQN_agent:
             state = tf.expand_dims(state, axis=0)
             return np.argmax(self.cnn.predict(state, verbose=False))
 
+    @tf.function
+    def get_loss(self, q_expected, rewards, q_targets, dones):
+        rewards = tf.cast(rewards, tf.float32)
+        q_targets = tf.add(rewards, (self.gamma)*q_targets*(1.-dones))
+        losses = self.loss(q_targets, q_expected)
+        return losses
+
     def learn(self, experiences):
         states, actions, rewards, next_states, dones = experiences
 
         with tf.GradientTape() as tape1:
             q_values = self.cnn(states)
             next_q_values = tf.stop_gradient(self.target_cnn(next_states))
-
-            q_expected = tf.reduce_sum(
+            q_expected = tf.math.reduce_sum(
                 q_values * tf.one_hot(actions, 6), axis=1)
-            q_targets = tf.reduce_max(next_q_values, axis=1)
-            rewards = tf.cast(rewards, tf.float32)
-            q_targets = tf.add(rewards, (self.gamma)*q_targets*(1.-dones))
-            losses = self.loss(q_targets, q_expected)
+            q_targets = tf.math.reduce_max(next_q_values, axis=1)
+            losses = self.get_loss(
+                q_expected, rewards, q_targets, dones)
 
         grads = tape1.gradient(losses, self.cnn.trainable_variables)
         self.optimizer.apply_gradients(
@@ -61,7 +66,7 @@ class DQN_agent:
         self.soft_update()
 
     def soft_update(self):
-        for target, policy in zip(self.target_cnn.layers[1:], self.cnn.layers[1:]):
+        for target, policy in zip(self.target_cnn.layers, self.cnn.layers):
             if isinstance(target, tf.keras.layers.Conv2D) or isinstance(target, tf.keras.layers.Dense):
                 target_weight = target.get_weights()[0]
                 target_bias = target.get_weights()[1]
@@ -84,7 +89,7 @@ class DQN_agent:
         self.target_cnn.load_weights("DQN_target_model.h5")
 
 
-class DDQN_agent(DQN_agent):
+class DoubleDeepQNetwork_agent(DeepQNetwork_agent):
     def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE):
         super().__init__(epsilon, gamma, memory_capacity, sample_size)
 
@@ -118,7 +123,8 @@ class DDQN_agent(DQN_agent):
         self.cnn.load_weights("DDQN_target_model.h5")
         self.target_cnn.load_weights("DDQN_target_model.h5")
 
-class DDDQN_agent(DQN_agent):
+
+class DuelingDQN_agent(DeepQNetwork_agent):
     def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE):
         super().__init__(epsilon, gamma, memory_capacity, sample_size)
 
@@ -181,6 +187,18 @@ class Reinforce_agent:
             np.sqrt(np.sum(advantages**2))
         return advantages
 
+    @tf.function
+    def advantage_loss(self, returns, predictions):
+        return tf.keras.losses.mean_squared_error(
+            y_true=returns, y_pred=predictions)
+
+    @tf.function
+    def get_loss(self, values, actions, returns):
+        dist = tfp.distributions.Categorical(logits=values)
+        log_prob = dist.log_prob(actions)
+        loss = -tf.reduce_mean(log_prob * returns)
+        return loss
+
     def learn(self):
         returns = tf.convert_to_tensor(
             self.compute_returns(0), dtype=tf.float32)
@@ -191,8 +209,7 @@ class Reinforce_agent:
             advantages = self.get_advantage(returns, states)
             with tf.GradientTape() as tape:
                 predictions = self.baseline_cnn(states)
-                loss = tf.keras.losses.mean_squared_error(
-                    y_true=returns, y_pred=predictions)
+                loss = self.advantage_loss(returns, predictions)
             grads = tape.gradient(loss, self.baseline_cnn.trainable_weights)
             self.baseline_optimizer.apply_gradients(
                 zip(grads, self.baseline_cnn.trainable_weights))
@@ -200,9 +217,7 @@ class Reinforce_agent:
 
         with tf.GradientTape() as tape:
             values = self.cnn(states)
-            dist = tfp.distributions.Categorical(logits=values)
-            log_prob = dist.log_prob(actions)
-            loss = -tf.reduce_mean(log_prob * returns)
+            loss = self.get_loss(values, actions, returns)
 
         grads = tape.gradient(loss, self.cnn.trainable_variables)
         self.optimizer.apply_gradients(
@@ -223,7 +238,7 @@ class Reinforce_agent:
             self.cnn.load_weights("PG_model.h5")
 
 
-class ActorCritic:
+class ActorCritic_agent:
     def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE):
         self.memory_capacity = memory_capacity
         self.epsilon = epsilon
@@ -231,53 +246,52 @@ class ActorCritic:
         self.sample_size = sample_size
 
         self.actor_cnn = cnn(INPUT_SHAPE, ACTION_SIZE)
-        self.critic_cnn = cnn(INPUT_SHAPE, ACTION_SIZE)
+        self.critic_cnn = cnn(INPUT_SHAPE, 1)
         self.actor_optimizer = tf.keras.optimizers.Adam(ALPHA)
         self.critic_optimizer = tf.keras.optimizers.Adam(BETA)
 
-        self.states = []
-        self.rewards = []
-        self.actions = []
-        self.masks = []
-
-    def reset_memory(self):
-        del self.states[:]
-        del self.rewards[:]
-        del self.actions[:]
-        del self.masks[:]
-
     def act(self, state, eps):
         state = tf.expand_dims(state, axis=0)
-        values = self.cnn.predict(state, verbose=False)
+        values = self.actor_cnn.predict(state, verbose=False)
         dist = tfp.distributions.Categorical(logits=values)
         action = dist.sample()
         return int(action.numpy()[0])
 
     def step(self, state, action, reward, next_state, done):
-        self.states.append(state)
-        self.actions.append(action)
-        self.rewards.append(reward)
-        self.masks.append(1 - done)
-        if done:
-            # print('Starting to learn...')
-            self.learn()
+        self.learn(state, action, reward, next_state, done)
 
-    def compute_returns(self, next_value):
-        R = next_value
-        returns = []
-        for step in reversed(range(len(self.rewards))):
-            R = self.rewards[step] + self.gamma * R * self.masks[step]
-            returns.insert(0, R)
-        return returns
+    @tf.function
+    def actor_loss(self, logits, action, td):
+        dist = tfp.distributions.Categorical(logits=logits, dtype=tf.float32)
+        log_prob = dist.log_prob(action)
+        loss = -log_prob*td
+        return loss
 
-    def learn(self):
-        self.reset_memory()
+    def learn(self, state, action, reward, next_state, done):
+        state = np.array([state])
+        next_state = np.array([next_state])
+        with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
+            p = self.actor_cnn(state, training=True)
+            v = self.critic_cnn(state, training=True)
+            vn = self.critic_cnn(next_state, training=True)
+            td = reward + self.gamma*vn*(1-int(done)) - v
+            a_loss = self.actor_loss(p, action, td)
+            c_loss = td**2
+        grads1 = tape1.gradient(a_loss, self.actor_cnn.trainable_variables)
+        grads2 = tape2.gradient(c_loss, self.critic_cnn.trainable_variables)
+        self.actor_optimizer.apply_gradients(
+            zip(grads1, self.actor_cnn.trainable_variables))
+        self.critic_optimizer.apply_gradients(
+            zip(grads2, self.critic_cnn.trainable_variables))
+        return a_loss, c_loss
 
     def save_model(self):
-        self.cnn.save_weights("AC_model.h5")
+        self.actor_cnn.save_weights("ActorC_model.h5")
+        self.critic_cnn.save_weights("ACritic_model.h5")
 
     def load_model(self):
-        self.cnn.load_weights("AC_model.h5")
+        self.actor_cnn.load_weights("ActorC_model.h5")
+        self.critic_cnn.load_weights("ACritic_model.h5")
 
 
 if __name__ == '__main__':
