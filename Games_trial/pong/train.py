@@ -16,23 +16,7 @@ silence_tensorflow()
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-env = gym.make('PongNoFrameskip-v4', render_mode='rgb_array')  # 'human')
-env.metadata['render_fps'] = 144
-env.reset()
 
-
-def random_play():
-    score = 0
-    state = env.reset()[0]
-    while True:
-        env.render()
-        action = env.action_space.sample()
-        state, reward, done, _, truncated = env.step(action)
-        score += reward
-        if done:
-            env.close()
-            print("Your Score at end of game is: ", score)
-            break
 
 
 def epsilon_by_epsiode(frame_idx): return EPS_END + \
@@ -45,6 +29,9 @@ def train(agent, n_episodes=50000):
     scores_window = deque(maxlen=20)
 
     for i_episode in tqdm.tqdm(range(start_epoch + 1, n_episodes+1)):
+        env = gym.make('PongNoFrameskip-v4', render_mode='rgb_array')  # 'human')
+        env.metadata['render_fps'] = 144
+
         state = stack_frames(None, preprocess_frame(env.reset()[0]), True)
         score = 0
         eps = epsilon_by_epsiode(i_episode)
@@ -73,6 +60,7 @@ def train(agent, n_episodes=50000):
             # plt.ylabel('Score')
             # plt.xlabel('Episode #')
             # plt.show()
+        env.close()
 
     return scores
 

@@ -1,0 +1,15 @@
+INPUT_SHAPE = (8,)  # (84, 84, 4)
+ACTION_SIZE = 4
+SEED = 0
+ALPHA = 0.001
+BETA = 0.001
+GAMMA = 0.99           # discount factor
+BUFFER_SIZE = 10000     # replay buffer size
+BATCH_SIZE = 256       # Update batch size
+LR = 0.0001            # learning rate
+TAU = 1e-3             # for soft update of target parameters
+UPDATE_EVERY = 1       # how often to update the network
+UPDATE_TARGET = 10000  # After which thershold replay to be started
+EPS_START = 0.99       # starting value of epsilon
+EPS_END = 0.01         # Ending value of epsilon
+EPS_DECAY = 100        # Rate by which epsilon to be decayed
