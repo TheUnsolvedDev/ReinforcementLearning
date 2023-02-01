@@ -26,7 +26,6 @@ def train(agent, env, n_episodes=50000, stacking_frames=False):
     scores_window = deque(maxlen=20)
 
     for i_episode in tqdm.tqdm(range(start_epoch + 1, n_episodes+1)):
-        gc.collect()
         if stacking_frames:
             state = stack_frames(None, preprocess_frame(env.reset()[0]), True)
         else:
@@ -34,6 +33,7 @@ def train(agent, env, n_episodes=50000, stacking_frames=False):
         score = 0
         eps = epsilon_by_epsiode(i_episode)
         while True:
+            gc.collect()
             action = agent.act(state, eps)
             next_state, reward, done, trauncated, info = env.step(action)
             score += reward
@@ -55,7 +55,6 @@ def train(agent, env, n_episodes=50000, stacking_frames=False):
             agent.save_model()
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(
                 i_episode, np.mean(scores_window)))
-            
 
     return scores
 

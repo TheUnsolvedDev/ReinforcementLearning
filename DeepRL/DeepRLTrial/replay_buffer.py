@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import gc
 
 from params import *
 
@@ -7,7 +8,6 @@ from params import *
 class ReplayBuffer:
     def __init__(self, capacity, batch_size=128):
         self.capacity = capacity
-        self.memory = []
         self.batch_size = batch_size
         self.mem_cntr = 0
         input_shape = list(INPUT_SHAPE)

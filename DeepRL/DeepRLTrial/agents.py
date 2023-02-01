@@ -8,18 +8,14 @@ from replay_buffer import *
 
 
 class ActorCritic_agent:
-    def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE, use_dnn=False):
+    def __init__(self, epsilon=EPS_START, gamma=GAMMA, memory_capacity=BUFFER_SIZE, sample_size=BATCH_SIZE):
         self.memory_capacity = memory_capacity
         self.epsilon = epsilon
         self.gamma = gamma
         self.sample_size = sample_size
 
-        if use_dnn:
-            self.actor_cnn = dnn(INPUT_SHAPE, ACTION_SIZE)
-            self.critic_cnn = dnn(INPUT_SHAPE, 1)
-        else:
-            self.actor_cnn = cnn(INPUT_SHAPE, ACTION_SIZE)
-            self.critic_cnn = cnn(INPUT_SHAPE, 1)
+        self.actor_cnn = dnn(INPUT_SHAPE, ACTION_SIZE)
+        self.critic_cnn = dnn(INPUT_SHAPE, 1)
 
         self.actor_optimizer = tf.keras.optimizers.Adam(ALPHA)
         self.critic_optimizer = tf.keras.optimizers.Adam(BETA)
