@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 import time
 import sys
@@ -60,14 +60,14 @@ def off_policy_monte_carlo_prediction(env, episodes=1000):  # Q = Q_pi
         actions = []
         rewards = []
 
-        state = env.reset()
+        state = env.reset()[0]
         done = False
         while not done:
             states.append(state)
             probs = random_policy(n_actions)(state)
             action = np.random.choice(np.arange(len(probs)), p=probs)
             actions.append(action)
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, truncated = env.step(action)
             rewards.append(reward)
 
         W = 1.0
@@ -85,7 +85,7 @@ def off_policy_monte_carlo_prediction(env, episodes=1000):  # Q = Q_pi
 
 
 if __name__ == "__main__":
-    episodes = 1000000*5
+    episodes = 1000000
 
     Q = off_policy_monte_carlo_prediction(env, episodes=episodes)
     # print(state_values)

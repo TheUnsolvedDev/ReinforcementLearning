@@ -28,5 +28,5 @@ def dnn(input_shape, output_shape):
 
 
 if __name__ == '__main__':
-    model = cnn(INPUT_SHAPE, ACTION_SIZE)
+    model = dnn(INPUT_SHAPE, ACTION_SIZE)
     model.summary()

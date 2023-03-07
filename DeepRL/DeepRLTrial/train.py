@@ -20,7 +20,7 @@ def epsilon_by_epsiode(frame_idx): return EPS_END + \
     (EPS_START - EPS_END) * np.exp(-1. * frame_idx / EPS_DECAY)
 
 
-def train(agent, env, n_episodes=50000, stacking_frames=False):
+def train(agent, env, n_episodes=2000, stacking_frames=False):
     start_epoch = 0
     scores = []
     scores_window = deque(maxlen=20)

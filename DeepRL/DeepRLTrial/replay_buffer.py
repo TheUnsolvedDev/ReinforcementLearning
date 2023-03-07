@@ -1,6 +1,10 @@
 import numpy as np
 import tensorflow as tf
+<<<<<<< Updated upstream
 import gc
+=======
+import random
+>>>>>>> Stashed changes
 
 from params import *
 
@@ -9,34 +13,34 @@ class ReplayBuffer:
     def __init__(self, capacity, batch_size=128):
         self.capacity = capacity
         self.batch_size = batch_size
-        self.mem_cntr = 0
-        input_shape = list(INPUT_SHAPE)
-        self.states = np.zeros((self.capacity, *input_shape), dtype=np.float32)
-        self.actions = np.zeros(self.capacity, dtype=np.int8)
-        self.rewards = np.zeros(self.capacity, dtype=np.float32)
-        self.dones = np.zeros(self.capacity, dtype=np.float32)
-        self.next_states = np.zeros(
-            (self.capacity, *input_shape), dtype=np.float32)
 
     def add(self, state, reward, action, next_state, done):
-        index = self.mem_cntr % self.capacity
-        self.states[index] = state
-        self.actions[index] = action
-        self.rewards[index] = reward
-        self.dones[index] = done
-        self.next_states[index] = next_state
-        self.mem_cntr += 1
+        experience = (state, reward, action, next_state, done)
+        if len(self.memory) > self.capacity:
+            self.memory.pop(0)
+        self.memory.append(experience)
 
     def sample(self):
-        max_mem = min(self.capacity, self.mem_cntr)
-        batch = np.random.choice(max_mem, self.batch_size)
+        states = []
+        actions = []
+        rewards = []
+        dones = []
+        next_states = []
 
-        states = self.states[batch]
-        actions = self.actions[batch]
-        rewards = self.rewards[batch]
-        next_states = self.next_states[batch]
-        dones = self.dones[batch]
+        batch = random.sample(self.memory, self.batch_size)
+        for experience in batch:
+            states.append(experience[0])
+            rewards.append(experience[1])
+            actions.append(experience[2])
+            next_states.append(experience[3])
+            dones.append(experience[4])
+
+        states = np.array(states, dtype=np.float32)
+        actions = np.array(actions, dtype=np.int8)
+        rewards = np.array(rewards, dtype=np.float32)
+        next_states = np.array(next_states, dtype=np.float32)
+        dones = np.array(dones, dtype=np.float32)
         return (states, actions, rewards, next_states, dones)
 
     def __len__(self):
-        return self.mem_cntr
+        return len(self.memory)

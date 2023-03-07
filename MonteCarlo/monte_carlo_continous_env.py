@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 from collections import defaultdict
 import tqdm
@@ -12,7 +12,7 @@ n_actions = env.action_space.n
 
 def linear_model(size=4):
     inputs = tf.keras.layers.Input(size)
-    hidden = tf.keras.layers.Dense(6,activation = 'relu')(inputs)
+    hidden = tf.keras.layers.Dense(6, activation='relu')(inputs)
     outputs = tf.keras.layers.Dense(n_actions, activation='linear')(hidden)
     model = tf.keras.models.Model(inputs, outputs)
     return model
@@ -55,7 +55,7 @@ def monte_carlo(env, episodes=2000, epsilon=1):
         state_actions = []
         rewards = []
 
-        state = tuple(env.reset())
+        state = tuple(env.reset()[0])
         done = False
         while not done:
             if np.random.randn() <= epsilon:
@@ -63,7 +63,7 @@ def monte_carlo(env, episodes=2000, epsilon=1):
             else:
                 action = np.argmax(model(np.array([list(state)])))
             state_actions.append((state, action))
-            state, reward, done, null, info = env.step(action)
+            state, reward, done, info, turncated = env.step(action)
             state = tuple(state)
             rewards.append(reward)
 
@@ -77,7 +77,7 @@ def monte_carlo(env, episodes=2000, epsilon=1):
                 Q[S][A] += (total_reward - Q[S][A])/state_count[S][A]
 
             buffer.push(list(S), Q[S])
-        
+
         if ep % 100 == 50:
             full_data = buffer.sample()
             data = []
@@ -100,7 +100,7 @@ def monte_carlo(env, episodes=2000, epsilon=1):
 def play_games(no_of_games=10, Q=None):
     model = linear_model()
     for ep in range(no_of_games):
-        state = env.reset()
+        state = env.reset()[0]
         done = False
 
         total_reward = 0
@@ -109,7 +109,7 @@ def play_games(no_of_games=10, Q=None):
             if Q is not None:
                 model.load_weights('lin_mod.h5')
                 action = np.argmax(model(np.array([state])))
-            state, reward, done, null, info = env.step(action)
+            state, reward, done, info, truncated = env.step(action)
             total_reward += reward
             env.render()
         print('Cumulative reward:', total_reward, 'Episode no:', ep)
@@ -119,5 +119,4 @@ if __name__ == '__main__':
     play_games(10)
     # Q = monte_carlo(env)
     print()
-    play_games(10,Q = 'lin_mod.h5')
-
+    play_games(10, Q='lin_mod.h5')

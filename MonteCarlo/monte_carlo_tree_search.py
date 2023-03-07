@@ -2,10 +2,7 @@
 from __future__ import print_function
 import numpy
 import random
-# try:
-#     from colors import red, blue
-# except Exception as e:
-#     print("Install 'colors' module for color",e)
+
 def red(s): return s
 def blue(s): return s
 

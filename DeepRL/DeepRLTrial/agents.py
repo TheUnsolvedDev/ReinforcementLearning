@@ -14,15 +14,20 @@ class ActorCritic_agent:
         self.gamma = gamma
         self.sample_size = sample_size
 
+<<<<<<< Updated upstream
         self.actor_cnn = dnn(INPUT_SHAPE, ACTION_SIZE)
         self.critic_cnn = dnn(INPUT_SHAPE, 1)
+=======
+        self.actor_model = dnn(INPUT_SHAPE, ACTION_SIZE)
+        self.critic_model = dnn(INPUT_SHAPE, 1)
+>>>>>>> Stashed changes
 
         self.actor_optimizer = tf.keras.optimizers.Adam(ALPHA)
         self.critic_optimizer = tf.keras.optimizers.Adam(BETA)
 
     def act(self, state, eps):
         state = tf.expand_dims(state, axis=0)
-        values = self.actor_cnn.predict(state, verbose=False)
+        values = self.actor_model.predict(state, verbose=False)
         dist = tfp.distributions.Categorical(logits=values)
         action = dist.sample()
         return int(action.numpy()[0])
@@ -41,27 +46,27 @@ class ActorCritic_agent:
         state = np.array([state])
         next_state = np.array([next_state])
         with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
-            p = self.actor_cnn(state, training=True)
-            v = self.critic_cnn(state, training=True)
-            vn = self.critic_cnn(next_state, training=True)
+            p = self.actor_model(state, training=True)
+            v = self.critic_model(state, training=True)
+            vn = self.critic_model(next_state, training=True)
             td = reward + self.gamma*vn*(1-int(done)) - v
             a_loss = self.actor_loss(p, action, td)
             c_loss = td**2
-        grads1 = tape1.gradient(a_loss, self.actor_cnn.trainable_variables)
-        grads2 = tape2.gradient(c_loss, self.critic_cnn.trainable_variables)
+        grads1 = tape1.gradient(a_loss, self.actor_model.trainable_variables)
+        grads2 = tape2.gradient(c_loss, self.critic_model.trainable_variables)
         self.actor_optimizer.apply_gradients(
-            zip(grads1, self.actor_cnn.trainable_variables))
+            zip(grads1, self.actor_model.trainable_variables))
         self.critic_optimizer.apply_gradients(
-            zip(grads2, self.critic_cnn.trainable_variables))
+            zip(grads2, self.critic_model.trainable_variables))
         return a_loss, c_loss
 
     def save_model(self):
-        self.actor_cnn.save_weights("ActorC_model.h5")
-        self.critic_cnn.save_weights("ACritic_model.h5")
+        self.actor_model.save_weights("ActorC_model.h5")
+        self.critic_model.save_weights("ACritic_model.h5")
 
     def load_model(self):
-        self.actor_cnn.load_weights("ActorC_model.h5")
-        self.critic_cnn.load_weights("ACritic_model.h5")
+        self.actor_model.load_weights("ActorC_model.h5")
+        self.critic_model.load_weights("ACritic_model.h5")
 
 
 class DeepQNetwork_agent:
@@ -71,8 +76,8 @@ class DeepQNetwork_agent:
         self.gamma = gamma
         self.sample_size = sample_size
 
-        self.cnn = dnn(INPUT_SHAPE, ACTION_SIZE)
-        self.target_cnn = dnn(INPUT_SHAPE, ACTION_SIZE)
+        self.model = dnn(INPUT_SHAPE, ACTION_SIZE)
+        self.target_model = dnn(INPUT_SHAPE, ACTION_SIZE)
         self.loss = tf.keras.losses.MeanSquaredError()
         self.optimizer = tf.keras.optimizers.Adam(ALPHA)
         self.memory = ReplayBuffer(BUFFER_SIZE)
@@ -95,7 +100,7 @@ class DeepQNetwork_agent:
             return np.random.randint(0, ACTION_SIZE)
         else:
             state = tf.expand_dims(state, axis=0)
-            return np.argmax(self.cnn.predict(state, verbose=False))
+            return np.argmax(self.model.predict(state, verbose=False))
 
     @tf.function
     def get_loss(self, q_expected, rewards, q_targets, dones):
@@ -108,22 +113,22 @@ class DeepQNetwork_agent:
         states, actions, rewards, next_states, dones = experiences
 
         with tf.GradientTape() as tape1:
-            q_values = self.cnn(states)
-            next_q_values = tf.stop_gradient(self.target_cnn(next_states))
+            q_values = self.model(states)
+            next_q_values = tf.stop_gradient(self.target_model(next_states))
             q_expected = tf.math.reduce_sum(
                 q_values * tf.one_hot(actions, ACTION_SIZE), axis=1)
             q_targets = tf.math.reduce_max(next_q_values, axis=1)
             losses = self.get_loss(
                 q_expected, rewards, q_targets, dones)
 
-        grads = tape1.gradient(losses, self.cnn.trainable_variables)
+        grads = tape1.gradient(losses, self.model.trainable_variables)
         self.optimizer.apply_gradients(
-            zip(grads, self.cnn.trainable_variables))
+            zip(grads, self.model.trainable_variables))
 
         self.soft_update()
 
     def soft_update(self):
-        for target, policy in zip(self.target_cnn.layers, self.cnn.layers):
+        for target, policy in zip(self.target_model.layers, self.model.layers):
             if isinstance(target, tf.keras.layers.Conv2D) or isinstance(target, tf.keras.layers.Dense):
                 target_weight = target.get_weights()[0]
                 target_bias = target.get_weights()[1]
@@ -138,12 +143,12 @@ class DeepQNetwork_agent:
                 target.set_weights([update_weights, update_bias])
 
     def save_model(self):
-        self.cnn.save_weights("DQN_model.h5")
-        self.target_cnn.save_weights("DQN_target_model.h5")
+        self.model.save_weights("DQN_model.h5")
+        self.target_model.save_weights("DQN_target_model.h5")
 
     def load_model(self):
-        self.cnn.load_weights("DQN_target_model.h5")
-        self.target_cnn.load_weights("DQN_target_model.h5")
+        self.model.load_weights("DQN_target_model.h5")
+        self.target_model.load_weights("DQN_target_model.h5")
 
 
 class DoubleDeepQNetwork_agent(DeepQNetwork_agent):
@@ -154,9 +159,9 @@ class DoubleDeepQNetwork_agent(DeepQNetwork_agent):
         states, actions, rewards, next_states, dones = experiences
 
         with tf.GradientTape() as tape1:
-            q_values = self.cnn(states)
-            next_q_values = tf.stop_gradient(self.target_cnn(next_states))
-            q_next_values = self.cnn(next_states)
+            q_values = self.model(states)
+            next_q_values = tf.stop_gradient(self.target_model(next_states))
+            q_next_values = self.model(next_states)
 
             q_expected = tf.reduce_sum(
                 q_values * tf.one_hot(actions, ACTION_SIZE), axis=1)
@@ -168,17 +173,17 @@ class DoubleDeepQNetwork_agent(DeepQNetwork_agent):
             q_targets = tf.add(rewards, (self.gamma)*q_targets*(1.-dones))
             losses = self.loss(q_targets, q_expected)
 
-        grads = tape1.gradient(losses, self.cnn.trainable_variables)
+        grads = tape1.gradient(losses, self.model.trainable_variables)
         self.optimizer.apply_gradients(
-            zip(grads, self.cnn.trainable_variables))
+            zip(grads, self.model.trainable_variables))
 
     def save_model(self):
-        self.cnn.save_weights("DDQN_model.h5")
-        self.target_cnn.save_weights("DDQN_target_model.h5")
+        self.model.save_weights("DDQN_model.h5")
+        self.target_model.save_weights("DDQN_target_model.h5")
 
     def load_model(self):
-        self.cnn.load_weights("DDQN_target_model.h5")
-        self.target_cnn.load_weights("DDQN_target_model.h5")
+        self.model.load_weights("DDQN_target_model.h5")
+        self.target_model.load_weights("DDQN_target_model.h5")
 
 
 class DuelingDQN_agent(DeepQNetwork_agent):
@@ -194,12 +199,12 @@ class Reinforce_agent:
         self.sample_size = sample_size
         self.use_baseline = use_baseline
 
-        self.cnn = cnn(INPUT_SHAPE, ACTION_SIZE)
+        self.model = cnn(INPUT_SHAPE, ACTION_SIZE)
         self.optimizer = tf.keras.optimizers.Adam(ALPHA)
         self.memory = ReplayBuffer(BUFFER_SIZE)
 
         if self.use_baseline:
-            self.baseline_cnn = cnn(INPUT_SHAPE, 1)
+            self.baseline_model = cnn(INPUT_SHAPE, 1)
             self.baseline_optimizer = tf.keras.optimizers.Adam(ALPHA)
 
         self.states = []
@@ -232,13 +237,13 @@ class Reinforce_agent:
 
     def act(self, state, eps):
         state = tf.expand_dims(state, axis=0)
-        values = self.cnn.predict(state, verbose=False)
+        values = self.model.predict(state, verbose=False)
         dist = tfp.distributions.Categorical(logits=values)
         action = dist.sample()
         return int(action.numpy()[0])
 
     def get_advantage(self, returns, observations):
-        values = self.baseline_cnn(observations)
+        values = self.baseline_model(observations)
         advantages = returns - values
         advantages = (advantages-np.mean(advantages)) / \
             np.sqrt(np.sum(advantages**2))
@@ -265,31 +270,31 @@ class Reinforce_agent:
         if self.use_baseline:
             advantages = self.get_advantage(returns, states)
             with tf.GradientTape() as tape:
-                predictions = self.baseline_cnn(states)
+                predictions = self.baseline_model(states)
                 loss = self.advantage_loss(returns, predictions)
-            grads = tape.gradient(loss, self.baseline_cnn.trainable_weights)
+            grads = tape.gradient(loss, self.baseline_model.trainable_weights)
             self.baseline_optimizer.apply_gradients(
-                zip(grads, self.baseline_cnn.trainable_weights))
+                zip(grads, self.baseline_model.trainable_weights))
             returns = advantages
 
         with tf.GradientTape() as tape:
-            values = self.cnn(states)
+            values = self.model(states)
             loss = self.get_loss(values, actions, returns)
 
-        grads = tape.gradient(loss, self.cnn.trainable_variables)
+        grads = tape.gradient(loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(
-            zip(grads, self.cnn.trainable_variables))
+            zip(grads, self.model.trainable_variables))
 
         self.reset_memory()
 
     def save_model(self):
         if self.use_baseline:
-            self.cnn.save_weights("PG_baseline_model.h5")
+            self.model.save_weights("PG_baseline_model.h5")
         else:
-            self.cnn.save_weights("PG_model.h5")
+            self.model.save_weights("PG_model.h5")
 
     def load_model(self):
         if self.use_baseline:
-            self.cnn.load_weights("PG_baseline_model.h5")
+            self.model.load_weights("PG_baseline_model.h5")
         else:
-            self.cnn.load_weights("PG_model.h5")
+            self.model.load_weights("PG_model.h5")

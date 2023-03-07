@@ -3,7 +3,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
-import gym
+import gymnasium as gym
 import sys
 import tqdm
 
@@ -22,7 +22,7 @@ def state_value_function(env, state, action, state_values, gamma):
 
 def value_iteration(env, iteration=100000, threshold=0.0001, gamma=0.99):
     state_values = np.zeros(n_states, dtype=np.float32)
-    
+
     for iter in tqdm.tqdm(range(iteration)):
         delta = 0
         for state in range(n_states):
@@ -35,19 +35,20 @@ def value_iteration(env, iteration=100000, threshold=0.0001, gamma=0.99):
 
     return state_values
 
-def best_action(env,state,state_values,gamma):
-    return np.argmax([state_value_function(env,state,action,state_values,gamma) for action in range(n_actions)])
+
+def best_action(env, state, state_values, gamma):
+    return np.argmax([state_value_function(env, state, action, state_values, gamma) for action in range(n_actions)])
 
 
-def game_simulate(env,state_values, trials=10000):
+def game_simulate(env, state_values, trials=10000):
     games_won = 0
     for trial in tqdm.tqdm(range(trials)):
         done = False
-        state = env.reset()
+        state = env.reset()[0]
 
         while not done:
-            action = best_action(env,state,state_values,gamma = 0.99)
-            state, reward, done, info = env.step(action)
+            action = best_action(env, state, state_values, gamma=0.99)
+            state, reward, done, info, truncated = env.step(action)
 
             if reward == 1:
                 games_won += 1
@@ -57,6 +58,5 @@ def game_simulate(env,state_values, trials=10000):
 if __name__ == '__main__':
     state_values = value_iteration(env)
     print(state_values.reshape(semi_states, semi_states))
-    game_simulate(env,state_values)
+    game_simulate(env, state_values)
     env.close()
-    

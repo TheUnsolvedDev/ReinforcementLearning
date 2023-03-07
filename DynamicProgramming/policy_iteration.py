@@ -3,7 +3,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
-import gym
+import gymnasium as gym
 import sys
 import tqdm
 
@@ -13,6 +13,7 @@ env = env.unwrapped
 n_actions = env.action_space.n
 n_states = env.observation_space.n
 semi_states = int(n_states ** 0.5)
+
 
 def state_value_function(env, state, action, state_values, gamma=0.999):
     return np.sum([prob*(reward+gamma*state_values[next_state]) for
@@ -66,26 +67,23 @@ def policy_iteration(env, gamma=0.999):
 
     return state_values, policy
 
-def game_simulate(env,policy, trials=10000):
+
+def game_simulate(env, policy, trials=10000):
     games_won = 0
     for trial in tqdm.tqdm(range(trials)):
         done = False
-        state = env.reset()
+        state = env.reset()[0]
 
         while not done:
             action = policy[state]
-            state, reward, done, info = env.step(action)
-            # env.render()
-            # time.sleep(0.25)
-
+            state, reward, done, info, truncated = env.step(action)
             if reward == 1:
                 games_won += 1
     print("Winning rate is", (games_won/trials)*100)
 
 
 if __name__ == '__main__':
-    state_values,policy = policy_iteration(env)
+    state_values, policy = policy_iteration(env)
     print(state_values.reshape(semi_states, semi_states))
-    game_simulate(env,policy)
+    game_simulate(env, policy)
     env.close()
-    

@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 import time
 import sys
@@ -61,14 +61,14 @@ def off_policy_monte_carlo_control(env, episodes=1000):  # Pi = Pi*
         actions = []
         rewards = []
 
-        state = env.reset()
+        state = env.reset()[0]
         done = False
         while not done:
             states.append(state)
             probs = random_policy(n_actions)(state)
             action = np.random.choice(np.arange(len(probs)), p=probs)
             actions.append(action)
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, truncated = env.step(action)
             rewards.append(reward)
 
         W = 1.0
@@ -93,10 +93,10 @@ def games_trial(env, policy, no_of_games=1000):
     count = 0
     for games in tqdm.tqdm(range(no_of_games)):
         done = False
-        state = env.reset()
+        state = env.reset()[0]
         while not done:
             action = policy[state]
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, truncated = env.step(action)
 
             if reward == 1:
                 count += 1
@@ -105,7 +105,7 @@ def games_trial(env, policy, no_of_games=1000):
 
 
 if __name__ == '__main__':
-    episodes = 1000000*5
+    episodes = 1000000
 
     Q, policy = off_policy_monte_carlo_control(env, episodes=episodes)
     # print(policy)

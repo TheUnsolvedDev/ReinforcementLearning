@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-import gym
+import gymnasium as gym
 import tqdm
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')

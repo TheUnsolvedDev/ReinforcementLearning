@@ -1,5 +1,5 @@
 import tensorflow as tf
-import gym
+import gymnasium as gym
 import cv2
 import numpy as np
 import tqdm
@@ -39,11 +39,11 @@ def random_gameplay(num_games=NUM_TRIAL_GAMES, is_random=True):
     try:
         mod.load_weights('cnn_mod.h5')
     except FileNotFoundError:
-        model.save_weights('cnn_mod.h5')
+        mod.save_weights('cnn_mod.h5')
 
     for _ in range(num_games):
         total_reward = 0
-        states = [pre_preprocess(trial_env.reset()) for i in range(4)]
+        states = [pre_preprocess(trial_env.reset()[0]) for i in range(4)]
         done = False
         while not done:
             if is_random:
@@ -51,7 +51,7 @@ def random_gameplay(num_games=NUM_TRIAL_GAMES, is_random=True):
             else:
                 states_np = np.array(states).astype(int).reshape(IMAGE_SIZE)
                 action = np.argmax(mod(np.expand_dims(states_np, axis=0)))
-            temp_state, reward, done, info = trial_env.step(action)
+            temp_state, reward, done, info, truncated = trial_env.step(action)
             states.pop(0)
             states += [pre_preprocess(temp_state)]
             total_reward += reward
@@ -82,7 +82,7 @@ def monte_carlo(env, episodes=NUM_TRAIN_GAMES):
         state_actions = []
         rewards = []
 
-        states = [pre_preprocess(env.reset()) for i in range(4)]
+        states = [pre_preprocess(env.reset()[0]) for i in range(4)]
         done = False
         while not done:
             if np.random.randn() <= epsilon:
@@ -91,7 +91,7 @@ def monte_carlo(env, episodes=NUM_TRAIN_GAMES):
                 states_np = np.array(states).astype(int).reshape(IMAGE_SIZE)
                 action = np.argmax(mod(np.expand_dims(states_np, axis=0)))
             state_actions.append((states, action))
-            temp_state, reward, done, info = env.step(action)
+            temp_state, reward, done, info, truncated = env.step(action)
             states.pop(0)
             states += [pre_preprocess(temp_state)]
             rewards.append(reward)

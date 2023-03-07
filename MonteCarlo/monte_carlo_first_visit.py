@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 import time
 import sys
@@ -52,12 +52,12 @@ def first_visit_monte_carlo(env, episodes=1000):  # V = V_pi
         rewards = []
 
         done = False
-        state = env.reset()
+        state = env.reset()[0]
         while not done:
             states.append(state)
             action = env.action_space.sample()
             actions.append(action)
-            state, reward, done, info = env.step(action)
+            state, reward, done, info, truncated = env.step(action)
             rewards.append(reward)
 
         total_reward = 0
@@ -73,7 +73,7 @@ def first_visit_monte_carlo(env, episodes=1000):  # V = V_pi
 
 
 if __name__ == "__main__":
-    episodes = 1000000*5
+    episodes = 1000000
 
     state_values = first_visit_monte_carlo(env, episodes=episodes)
     # print(state_values)
