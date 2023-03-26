@@ -1,13 +1,4 @@
-
-*.md
-book/backgrounds/background1.pdf
-book/backgrounds/background10.pdf
-book/backgrounds/background2.pdf
-book/backgrounds/background5.pdf
-book/backgrounds/background8.pdf
-book/images/AE.png
 *.png
-*.jpg
-Misc/gym-image-maze/
-Misc/gym-maze/
-Misc/mazelab/
+*.h5
+__pycache__/
+logs/

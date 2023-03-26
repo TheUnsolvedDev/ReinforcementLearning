@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import gym
+import gymnasium as gym
 import tensorflow as tf
 import tensorflow_probability as tfp
 

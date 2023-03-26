@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -29,5 +29,3 @@ def preprocess(state):
     return tf.expand_dims(tf.reduce_mean(state, axis=-1), axis=-1)
 
 
-env = gym.make('PongNoFrameskip-v4')
-# test_env = gym.make('PongNoFrameskip-v4', render_mode='human')

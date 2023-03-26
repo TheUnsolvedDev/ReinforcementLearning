@@ -1,11 +1,11 @@
 import numpy as np
-import gym
+import gymnasium as gym
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from params import *
 
-env = gym.make('PongNoFrameskip-v4')
+env = gym.make('ALE/Pong-v5')
 # test_env = gym.make('PongNoFrameskip-v4', render_mode='human')
 
 # Get the action space and state space dimensions
