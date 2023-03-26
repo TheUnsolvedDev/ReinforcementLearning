@@ -15,8 +15,13 @@ class ActorCritic_agent:
         self.sample_size = sample_size
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         self.actor_cnn = dnn(INPUT_SHAPE, ACTION_SIZE)
         self.critic_cnn = dnn(INPUT_SHAPE, 1)
+=======
+        self.actor_model = dnn(INPUT_SHAPE, ACTION_SIZE)
+        self.critic_model = dnn(INPUT_SHAPE, 1)
+>>>>>>> Stashed changes
 =======
         self.actor_model = dnn(INPUT_SHAPE, ACTION_SIZE)
         self.critic_model = dnn(INPUT_SHAPE, 1)
