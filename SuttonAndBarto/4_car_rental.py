@@ -11,12 +11,12 @@ import seaborn as sns
 
 
 params = {
-        'max_cars': [20, 20],
-        'max_moveable': 5,
-        'revenue_from_rented': 10,
-        'cost_for_moved': 2,
-        'lambdas': np.array([3, 4, 3, 2])
-        }
+    'max_cars': [20, 20],
+    'max_moveable': 5,
+    'revenue_from_rented': 10,
+    'cost_for_moved': 2,
+    'lambdas': np.array([3, 4, 3, 2])
+}
 
 
 class CarRental:
@@ -26,18 +26,18 @@ class CarRental:
             self,
             params=params,
             min_prob=1e-3
-            ):
+    ):
         self.params = params
         self.poisson_cache = {}
 
         self.state_maxes = [
-                self.params['max_cars'][0],
-                self.params['max_cars'][1],
-                poisson.ppf(1-min_prob, self.params['lambdas'][0]),
-                poisson.ppf(1-min_prob, self.params['lambdas'][1]),
-                poisson.ppf(1-min_prob, self.params['lambdas'][2]),
-                poisson.ppf(1-min_prob, self.params['lambdas'][3])
-                ]
+            self.params['max_cars'][0],
+            self.params['max_cars'][1],
+            poisson.ppf(1-min_prob, self.params['lambdas'][0]),
+            poisson.ppf(1-min_prob, self.params['lambdas'][1]),
+            poisson.ppf(1-min_prob, self.params['lambdas'][2]),
+            poisson.ppf(1-min_prob, self.params['lambdas'][3])
+        ]
 
     def _get_poisson_logpmf(self, n, l):
         """ cache poisson pmf calls to save computation """
@@ -100,7 +100,7 @@ class CarRental:
                 joint_prob = np.exp(np.sum(joint_log_prob))
 
                 revenue = (rented_1 + rented_2) * \
-                           self.params['revenue_from_rented']
+                    self.params['revenue_from_rented']
 
                 successors.append((next_state, revenue, joint_prob))
         return successors
@@ -176,41 +176,38 @@ class PolicyIterationAgent:
 
 def plot_policy(mdp, policy, ax, iter_count):
     sns.heatmap(
-            policy,
-            vmin=-mdp.params['max_moveable'],
-            vmax=mdp.params['max_moveable'],
-            yticklabels=list(range(mdp.params['max_cars'][0], -1, -1)),
-            annot=True,
-            ax=ax)
+        policy,
+        vmin=-mdp.params['max_moveable'],
+        vmax=mdp.params['max_moveable'],
+        yticklabels=list(range(mdp.params['max_cars'][0], -1, -1)),
+        annot=True,
+        ax=ax)
     ax.set_xlabel('cars at second location')
     ax.set_ylabel('cars at first location')
     ax.set_title(r'$\pi_{{%i}}$' % (iter_count))
 
-def fig_4_2():
-    mdp=CarRental()
-    agent=PolicyIterationAgent(mdp)
 
-    fig, axs=plt.subplots(2, 3)
+def fig_4_2():
+    mdp = CarRental()
+    agent = PolicyIterationAgent(mdp)
+    fig, axs = plt.subplots(3, 3, figsize=(21, 14))
     sns.set(rc={'font.size': 8, 'axes.labelsize': 'small',
             'xtick.labelsize': 'small', 'ytick.labelsize': 'small'})
-    axs=axs.flatten()
-
+    axs = axs.flatten()
 
     plot_policy(mdp, agent.get_policy(), axs[0], 0)
 
-
-    for i in range(1, 5):
+    for i in range(1, 8):
         print('Starting policy iteration cycle {}'.format(i))
         agent.run_policy_iteration()
-        policy=agent.get_policy()
+        policy = agent.get_policy()
         plot_policy(mdp, np.flipud(policy), axs[i], i)
 
-
     axs[-1].axis('off')
-    ax=fig.add_subplot(2, 3, 6, projection='3d')
-    x=np.arange(mdp.params['max_cars'][1] + 1)
-    y=np.arange(mdp.params['max_cars'][0] + 1)[::-1]
-    xx, yy=np.meshgrid(x, y)
+    ax = fig.add_subplot(3, 3, 9, projection='3d')
+    x = np.arange(mdp.params['max_cars'][1] + 1)
+    y = np.arange(mdp.params['max_cars'][0] + 1)[::-1]
+    xx, yy = np.meshgrid(x, y)
     ax.plot_wireframe(xx, yy, np.flipud(agent.get_values()))
     ax.set_xlabel('# cars at second location', fontsize=8)
     ax.set_ylabel('# cars at first location', fontsize=8)
@@ -219,6 +216,7 @@ def fig_4_2():
     plt.tight_layout()
     plt.savefig('figures/ch04_4_2.png')
     plt.close()
+
 
 if __name__ == '__main__':
     fig_4_2()
