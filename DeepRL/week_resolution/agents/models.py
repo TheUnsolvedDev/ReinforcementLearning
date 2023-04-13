@@ -7,27 +7,23 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
-def model(in_dim=100, out_dim=10, hidden_units=[128, 128], advantage=False):
+def model():
     inputs = tf.keras.layers.Input(in_dim)
-    if hidden_units:
-        x = tf.keras.layers.Dense(
-            hidden_units[0], activation='relu', kernel_initializer='he_uniform')(inputs)
-        for units in hidden_units[1:]:
-            x = tf.keras.layers.Dense(
-                units, activation='tanh', kernel_initializer='he_uniform')(x)
-    if not advantage:
-        outputs = tf.keras.layers.Dense(
-            out_dim, kernel_initializer='he_uniform', kernel_regularizer='l2', bias_regularizer='l2')(x)
-    else:
-        q_values = tf.keras.layers.Dense(
-            out_dim, kernel_initializer='he_uniform', kernel_regularizer='l2', bias_regularizer='l2')(x)
-        values = tf.keras.layers.Dense(
-            1, kernel_initializer='he_uniform', kernel_regularizer='l2', bias_regularizer='l2')(x)
-        outputs = [values, q_values]
+    x = tf.keras.layers.Conv2D(
+        16, kernel_size=8, strides=4, activation="relu")(inputs)
+    x = tf.keras.layers.Conv2D(
+        32, kernel_size=4, strides=2, activation="relu")(x)
+    x = tf.keras.layers.Conv2D(
+        32, kernel_size=3, strides=1, activation="relu")(x)
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(64, activation="relu")(x)
+    x = tf.keras.layers.Dense(64, activation="relu")(x)
+    outputs = tf.keras.layers.Dense(out_dim)(x)
+
     return tf.keras.Model(inputs, outputs)
 
 
 if __name__ == '__main__':
-    m = model(advantage=True)
+    m = model()
     # m.output.activation = 'softmax'
     m.summary()

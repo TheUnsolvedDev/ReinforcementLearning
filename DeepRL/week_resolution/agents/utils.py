@@ -18,6 +18,7 @@ def discounted_rewards(rewards, gamma=GAMMA):
         discounted[i] = running_sum
     return discounted
 
+
 def calculate_baselines(rewards):
     baselines = np.zeros_like(rewards)
     running_sum = 0
@@ -25,3 +26,14 @@ def calculate_baselines(rewards):
         running_sum = running_sum + rewards[i]
         baselines[i] = running_sum / (len(rewards) - i)
     return baselines
+
+
+def join_frames(frame, frames=None, initial=True):
+    if initial:
+        quad_frames = [frame for i in range(4)]
+        frames = np.array(quad_frames).reshape(in_dim)
+        return frames
+    else:
+        frames.popleft()
+        frames.stack(frame, axis=-1)
+        return frames

@@ -18,9 +18,13 @@ tf.random.set_seed(SEED)
 class DQNAgent():
     def __init__(self, env):
         self.env = env
-        self.num_actions = env.action_space.n
-        self.q_network = model(in_dim, out_dim)
-        self.target_q_network = model(in_dim, out_dim)
+        self.num_actions = out_dim
+
+        self.q_network = model()
+        self.q_network.summary()
+        self.target_q_network = model()
+        self.target_q_network.summary()
+
         self.optimizer = tf.keras.optimizers.RMSprop(ALPHA)
         self.target_q_network.set_weights(self.q_network.get_weights())
         self.memory = []
@@ -79,8 +83,10 @@ def DQN(env):
     summary_writer = tf.summary.create_file_writer(logdir=log_dir)
     episodic_improvements = []
     counter = 0
-    for episode in tqdm.tqdm(range(NUM_EPISODES)):
+    player.update_weights()
+    for episode in tqdm.tqdm(range(1, NUM_EPISODES+1)):
         state = player.env.reset()[0]
+        states = join_frames(state, initial=True)
         done = False
         truncated = False
         total_reward = 0
@@ -88,12 +94,14 @@ def DQN(env):
             if counter % TARGET_UPDATE_FREQUENCY == 0:
                 player.update_weights()
             counter += 1
-            action = player.act([state])
+            action = player.act([states])
             next_state, reward, done, truncated, info = player.env.step(action)
-            player.memory.append((state, action, reward, next_state, done))
+            next_states = join_frames(next_state, states)
+            player.memory.append((states, action, reward, next_states, done))
             if len(player.memory) > MEMORY_CAPACITY:
                 player.memory.pop(0)
             state = next_state
+            states = next_states
             total_reward += reward
             loss = player.train()
         player.epsilon = max(EPSILON_END, player.epsilon-EPSILON_DECAY)
@@ -103,6 +111,9 @@ def DQN(env):
         print(
             f"\rEpisode {episode + 1}: Total reward = {total_reward} Epsilon:{player.epsilon}", end=' ')
         sys.stdout.flush()
+        if episode % 100 == 0:
+            print(
+                f"Episode {episode + 1}: Total reward = {total_reward} Epsilon:{player.epsilon}")
         with summary_writer.as_default():
             tf.summary.scalar('epoch_loss', loss,
                               step=episode)
