@@ -27,13 +27,3 @@ def calculate_baselines(rewards):
         baselines[i] = running_sum / (len(rewards) - i)
     return baselines
 
-
-def join_frames(frame, frames=None, initial=True):
-    if initial:
-        quad_frames = [frame for i in range(4)]
-        frames = np.array(quad_frames).reshape(in_dim)
-        return frames
-    else:
-        frames.popleft()
-        frames.stack(frame, axis=-1)
-        return frames

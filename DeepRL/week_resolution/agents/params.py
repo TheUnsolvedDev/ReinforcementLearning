@@ -30,43 +30,39 @@ class ProcessFrame84(gym.ObservationWrapper):
         return x_t.astype(np.uint8)
 
 
-class ScaledFloatFrame(gym.ObservationWrapper):
-    def observation(self, obs):
-        return np.array(obs).astype(np.float32) / 255.0
-
-
-def make_env(env_name):
-    env = gym.make(env_name)
-    env = ProcessFrame84(env)
-    return ScaledFloatFrame(env)
-
-
 environment_choices = [i for i in gym.envs.registry.keys()]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-env', '--environment',
-                    help="Environment to train on", type=str, default='CartPole-v1', choices=environment_choices)
+                    help="Environment to train on", type=str, default='PongNoFrameskip-v4', choices=environment_choices)
 parser.add_argument('-t', "--train",
                     help="Methods of Training", type=str, default='reinforce', choices=['reinforce', 'reinforce_baseline', 'DQN', 'ActorCritic', 'DoubleDQN', 'DuelingDQN'])
 args = parser.parse_args()
 
-MAX_STEPS = 1000
+# MAX_STEPS = 1000
 GAMMA = 0.995
 ALPHA = 0.01
 EPSILON_START = 1.0
 EPSILON_END = 0.01
 NUM_EPISODES = 2000
 EPSILON_DECAY = (EPSILON_START - EPSILON_END)/(0.5*NUM_EPISODES)
-NUM_TRAJECTORIES = 10
+NUM_TRAJECTORIES = 5
 MEMORY_CAPACITY = 100000
 BATCH_SIZE = 256
 TARGET_UPDATE_FREQUENCY = 10
 WINDOW_SIZE = 50
 SEED = 1234
 
-env = gym.make(args.environment, max_episode_steps=MAX_STEPS)
-env = ScaledFloatFrame(ProcessFrame84(env))
 
+def make_env(env_id):
+    env = gym.make(env_id)
+    env = gym.wrappers.ResizeObservation(env, (84, 84))
+    env = gym.wrappers.GrayScaleObservation(env)
+    env = gym.wrappers.FrameStack(env, 4)
+    return env
+
+
+env = make_env(args.environment)
 # test_env = gym.make(
 #     args.environment, max_episode_steps=MAX_STEPS, render_mode='human')
 # test_env = ScaledFloatFrame(ProcessFrame84(test_env))

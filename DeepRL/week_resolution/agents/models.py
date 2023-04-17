@@ -7,10 +7,11 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
-def model():
+def model(out = out_dim):
     inputs = tf.keras.layers.Input(in_dim)
+    x = tf.keras.layers.Lambda(lambda i: i/255.0)(inputs)
     x = tf.keras.layers.Conv2D(
-        16, kernel_size=8, strides=4, activation="relu")(inputs)
+        16, kernel_size=8, strides=4, activation="relu")(x)
     x = tf.keras.layers.Conv2D(
         32, kernel_size=4, strides=2, activation="relu")(x)
     x = tf.keras.layers.Conv2D(
@@ -18,7 +19,7 @@ def model():
     x = tf.keras.layers.Flatten()(x)
     x = tf.keras.layers.Dense(64, activation="relu")(x)
     x = tf.keras.layers.Dense(64, activation="relu")(x)
-    outputs = tf.keras.layers.Dense(out_dim)(x)
+    outputs = tf.keras.layers.Dense(out)(x)
 
     return tf.keras.Model(inputs, outputs)
 

@@ -30,12 +30,16 @@ class DQNAgent():
         self.memory = []
         self.epsilon = EPSILON_START
 
+    @tf.function
+    def greedy_act(self, state):
+        logits = self.q_network(tf.expand_dims(state, axis=0), training=False)
+        action = tf.math.argmax(logits)
+        return action[0]
+
     def act(self, state):
         if np.random.rand() < self.epsilon:
             return self.env.action_space.sample()
-        q_values = self.q_network(
-            tf.convert_to_tensor(state, dtype=tf.float32))
-        return np.argmax(q_values)
+        return self.greedy_act(state)
 
     def update_weights(self):
         self.target_q_network.set_weights(self.q_network.get_weights())
