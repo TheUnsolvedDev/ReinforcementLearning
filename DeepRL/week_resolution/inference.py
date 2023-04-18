@@ -20,7 +20,6 @@ def act(actor, state):
 def simulate(env, num_games=10, model=None):
     for _ in range(num_games):
         state = env.reset()[0]
-        state_frames = join_frames(state, initial=True)
         done = False
         truncated = False
         total_reward = 0
@@ -36,21 +35,19 @@ def simulate(env, num_games=10, model=None):
             if model is None:
                 action = env.action_space.sample()
             else:
-                action = act(model, state_frames)
+                action = act(model, np.array(state).T).numpy()
+            print(action)
             next_state, reward, done, truncated, info = env.step(action)
-            next_state_frames = join_frames(
-                next_state, state_frames, initial=False)
             total_reward += reward
             state = next_state
-            state_frames = next_state_frames
             print('\rGame:', _, 'total_reward:',
                   total_reward, 'reward:', reward, end=' ')
             sys.stdout.flush()
 
 
 if __name__ == '__main__':
-    test_env = gym.make(env.unwrapped.spec.id,render_mode = 'human')
-    test_env = ProcessFrame84(test_env)
+    print(env.unwrapped.spec.id)
+    test_env = make_env(env.unwrapped.spec.id, render_mode='human')
 
     policy_model = model(out_dim)
     policy_model.summary()
