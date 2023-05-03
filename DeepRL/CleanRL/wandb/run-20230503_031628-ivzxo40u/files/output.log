@@ -1,0 +1,40 @@
+
+
+
+  1%|▉                                                                                                                   | 76/10000 [00:05<12:33, 13.17it/s]
+Traceback (most recent call last):
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DuelingDoubleDQN_discrete.py", line 192, in <module>
+    main()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DuelingDoubleDQN_discrete.py", line 188, in main
+    agent.train()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DuelingDoubleDQN_discrete.py", line 161, in train
+    for ep in tqdm.tqdm(range(max_episodes)):
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/std.py", line 1188, in __iter__
+    self.update(n - last_print_n)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/std.py", line 1239, in update
+    self.refresh(lock_args=self.lock_args)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/std.py", line 1344, in refresh
+    self.display()
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/std.py", line 1492, in display
+    self.sp(self.__str__() if msg is None else msg)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/std.py", line 347, in print_status
+    fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/std.py", line 340, in fp_write
+    fp.write(str(s))
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/tqdm/utils.py", line 127, in inner
+    return func(*args, **kwargs)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 643, in write
+    cb(data)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2087, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 344, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1427, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data)
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 656, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 195, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.utcnow())
+  File "/home/shuvrajeet/.local/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 268, in FromDatetime
+    self.seconds = calendar.timegm(dt.utctimetuple())
+KeyboardInterrupt

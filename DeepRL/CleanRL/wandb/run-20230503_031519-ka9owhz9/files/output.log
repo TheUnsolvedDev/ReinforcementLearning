@@ -1,0 +1,18 @@
+  0%|                                                                                                                   | 1/10000 [00:00<2:07:25,  1.31it/s]
+Traceback (most recent call last):
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 185, in <module>
+    main()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 181, in main
+    agent.train()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 168, in train
+    loss = self.replay()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 148, in replay
+    loss_value = self.train_step(*self.buffer.sample())
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/util/traceback_utils.py", line 153, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/tmp/__autograph_generated_filesj5xarej.py", line 16, in tf__train_step
+    updates = ag__.ld(rewards) + (1.0 - ag__.ld(done)) * ag__.ld(next_q_values) * ag__.ld(args).gamma
+TypeError: in user code:
+    File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 135, in train_step  *
+        updates = rewards + (1.0-done) * next_q_values * args.gamma
+    TypeError: Input 'y' of 'Mul' Op has type float64 that does not match type float32 of argument 'x'.

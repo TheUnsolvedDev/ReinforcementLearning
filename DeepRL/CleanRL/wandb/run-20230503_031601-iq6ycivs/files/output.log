@@ -1,0 +1,27 @@
+
+
+  1%|▉                                                                                                                   | 82/10000 [00:05<10:31, 15.71it/s]
+Traceback (most recent call last):
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 185, in <module>
+    main()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 181, in main
+    agent.train()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 168, in train
+    loss = self.replay()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py", line 148, in replay
+    loss_value = self.train_step(*self.buffer.sample())
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/util/traceback_utils.py", line 150, in error_handler
+    return fn(*args, **kwargs)
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 894, in __call__
+    result = self._call(*args, **kwds)
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 926, in _call
+    return self._no_variable_creation_fn(*args, **kwds)  # pylint: disable=not-callable
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compiler.py", line 143, in __call__
+    return concrete_function._call_flat(
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/monomorphic_function.py", line 1757, in _call_flat
+    return self._build_call_outputs(self._inference_function.call(
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/monomorphic_function.py", line 381, in call
+    outputs = execute.execute(
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/execute.py", line 52, in quick_execute
+    tensors = pywrap_tfe.TFE_Py_Execute(ctx._handle, device_name, op_name,
+KeyboardInterrupt

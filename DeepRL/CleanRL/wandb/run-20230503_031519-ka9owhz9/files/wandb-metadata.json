@@ -1,0 +1,75 @@
+{
+    "os": "Linux-6.1.25-1-MANJARO-x86_64-with-glibc2.37",
+    "python": "3.10.10",
+    "heartbeatAt": "2023-05-02T21:45:21.795513",
+    "startedAt": "2023-05-02T21:45:19.299431",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DoubleDQN_Discrete.py",
+    "codePath": "DeepRL/CleanRL/DoubleDQN_Discrete.py",
+    "git": {
+        "remote": "https://github.com/TheUnsolvedDev/ReinforcementLearning.git",
+        "commit": "f994aad61d4d512dd7cd333704291b62d8d44301"
+    },
+    "email": "shuvrajeet17@gmail.com",
+    "root": "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning",
+    "host": "desktop",
+    "username": "shuvrajeet",
+    "executable": "/usr/bin/python3",
+    "cpu_count": 6,
+    "cpu_count_logical": 6,
+    "cpu_freq": {
+        "current": 2369.1548333333335,
+        "min": 2200.0,
+        "max": 3600.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2382.182,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 2053.13,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 3256.603,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 2064.303,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 2259.633,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 2199.078,
+            "min": 2200.0,
+            "max": 3600.0
+        }
+    ],
+    "disk": {
+        "total": 421.9198417663574,
+        "used": 300.57869720458984
+    },
+    "gpu": "NVIDIA GeForce RTX 2060 SUPER",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 2060 SUPER",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 15.542892456054688
+    }
+}

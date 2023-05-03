@@ -1,0 +1,75 @@
+{
+    "os": "Linux-6.1.25-1-MANJARO-x86_64-with-glibc2.37",
+    "python": "3.10.10",
+    "heartbeatAt": "2023-05-03T06:21:01.640898",
+    "startedAt": "2023-05-03T06:21:00.377600",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DQN_Discrete.py",
+    "codePath": "DeepRL/CleanRL/DQN_Discrete.py",
+    "git": {
+        "remote": "https://github.com/TheUnsolvedDev/ReinforcementLearning.git",
+        "commit": "f994aad61d4d512dd7cd333704291b62d8d44301"
+    },
+    "email": "shuvrajeet17@gmail.com",
+    "root": "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning",
+    "host": "desktop",
+    "username": "shuvrajeet",
+    "executable": "/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 6,
+    "cpu_freq": {
+        "current": 2781.316166666667,
+        "min": 2200.0,
+        "max": 3600.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3446.657,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 3948.148,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 1988.357,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 3112.472,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 3930.417,
+            "min": 2200.0,
+            "max": 3600.0
+        },
+        {
+            "current": 3269.861,
+            "min": 2200.0,
+            "max": 3600.0
+        }
+    ],
+    "disk": {
+        "total": 421.9198417663574,
+        "used": 300.6312942504883
+    },
+    "gpu": "NVIDIA GeForce RTX 2060 SUPER",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 2060 SUPER",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 15.54288101196289
+    }
+}

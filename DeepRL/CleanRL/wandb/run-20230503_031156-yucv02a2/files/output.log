@@ -1,0 +1,31 @@
+
+
+
+
+  1%|█▎                                                                                                                 | 118/10000 [00:08<11:15, 14.62it/s]
+Traceback (most recent call last):
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DQN_Discrete.py", line 182, in <module>
+    main()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DQN_Discrete.py", line 178, in main
+    agent.train()
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DQN_Discrete.py", line 156, in train
+    action = self.model.get_action(state)
+  File "/home/shuvrajeet/Documents/GitHub/ReinforcementLearning/DeepRL/CleanRL/DQN_Discrete.py", line 96, in get_action
+    q_value = self.predict(state)[0]
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/util/traceback_utils.py", line 150, in error_handler
+    return fn(*args, **kwargs)
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 894, in __call__
+    result = self._call(*args, **kwds)
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 933, in _call
+    results = self._variable_creation_fn(*args, **kwds)
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compiler.py", line 143, in __call__
+    return concrete_function._call_flat(
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/monomorphic_function.py", line 1757, in _call_flat
+    return self._build_call_outputs(self._inference_function.call(
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/eager/polymorphic_function/monomorphic_function.py", line 418, in call
+    handle_data_util.copy_handle_data(func_graph_output, outputs[i])
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/ops/handle_data_util.py", line 41, in copy_handle_data
+    if (target_t.dtype == dtypes.resource or
+  File "/usr/lib/python3.10/site-packages/tensorflow/python/framework/ops.py", line 1134, in dtype
+    return dtypes._INTERN_TABLE[self._datatype_enum()]  # pylint: disable=protected-access
+KeyboardInterrupt

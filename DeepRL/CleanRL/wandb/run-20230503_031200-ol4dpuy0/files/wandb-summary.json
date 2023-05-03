@@ -1,0 +1,1 @@
+{"Loss": 0, "_timestamp": 1683063724.6149862, "_runtime": 4.354761123657227, "_step": 24, "Reward": 10.0, "Average Reward": 11.2, "Epsilon": 0.7552531090661897, "Buffer Size": 56, "_wandb": {"runtime": 3}}
