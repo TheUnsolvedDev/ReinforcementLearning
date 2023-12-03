@@ -1,4 +1,4 @@
-import wandb
+# import wandb
 from silence_tensorflow import silence_tensorflow
 import tensorflow as tf
 import gymnasium as gym
@@ -41,8 +41,8 @@ config = {
 }
 
 
-wandb.init(name='DQN_'+config['env_name'],
-           project="clean_RL", config=config)
+# wandb.init(name='DQN_'+config['env_name'],
+#            project="clean_RL", config=config)
 
 
 class ReplayBuffer:
@@ -163,11 +163,12 @@ class Agent:
             self.target_update()
             self.target_model.model.save_weights(
                 'weights/DQN_weights_'+config['env_name']+'.h5')
-            wandb.log({'Loss': loss})
-            wandb.log({'Reward': total_reward})
-            wandb.log({'Average Reward': np.mean(rewards_collection[-100:])})
-            wandb.log({'Epsilon': self.model.epsilon})
-            wandb.log({'Buffer Size': self.buffer.size()})
+            print(loss,total_reward)
+            # wandb.log({'Loss': loss})
+            # wandb.log({'Reward': total_reward})
+            # wandb.log({'Average Reward': np.mean(rewards_collection[-100:])})
+            # wandb.log({'Epsilon': self.model.epsilon})
+            # wandb.log({'Buffer Size': self.buffer.size()})
 
 
 def main():
@@ -179,4 +180,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-wandb.finish()
+# wandb.finish()
